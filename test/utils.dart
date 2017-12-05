@@ -1,5 +1,7 @@
 import 'package:collection/collection.dart';
+import 'package:petitparser/petitparser.dart';
 import 'package:ph/ph.dart';
+import 'package:ph/src/expression.dart';
 import 'package:test/test.dart';
 
 Description _describeValues(Description description, {String output,
@@ -60,3 +62,31 @@ _CompileTest compilesWithErrors(List<String> errors, {FileProvider fileProvider}
 _CompileTest compilesToWithErrors({String output, List<String> errors,
                                    FileProvider fileProvider}) =>
   new _CompileTest(output: output, errors: errors, fileProvider: fileProvider);
+
+class _ParseTest extends Matcher {
+  Expression expected;
+  _ParseTest(this.expected);
+
+  bool matches(item, Map matchState) {
+    var result = new ExprParser().parse(item);
+    matchState['result'] = result;
+    if (result is Success && expected != null) {
+      return result.value == expected;
+    } else if (result is Failure && expected == null) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  Description describe(Description description) =>
+    description..add(expected?.toString() ?? 'failure');
+  Description describeMismatch(item, Description mismatchDescription, Map matchState,
+                               bool verbose) =>
+    mismatchDescription..add(matchState['result'] is Success ?
+                             matchState['result'].value.toString() :
+                             'failure');
+}
+
+_ParseTest parsesTo(Expression expected) => new _ParseTest(expected);
+final parseFails = new _ParseTest(null);

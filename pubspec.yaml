@@ -2,6 +2,7 @@ name: ph
 description: ph
 dependencies:
   html: any
+  petitparser: any
   source_maps: any
   source_span: any
 dependency_overrides:
