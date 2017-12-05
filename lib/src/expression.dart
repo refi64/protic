@@ -1,5 +1,6 @@
 import 'package:petitparser/petitparser.dart';
 
+
 class EvalContext {
   Map<String, String> vars, macroVars;
   EvalContext({this.vars: const {}, this.macroVars});
@@ -184,4 +185,13 @@ class ExprParserDefinition extends ExprGrammarDefinition {
 
   qstring() => super.qstring().map((p) => new Text(p[1].join("")));
   bareword() => super.bareword().map((p) => new Text(p));
+}
+
+Expression parseExpression(String expr) {
+  var result = new ExprParser().parse(expr);
+  if (result is Success) {
+    return result.value;
+  } else {
+    return null;
+  }
 }

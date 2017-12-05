@@ -1,5 +1,6 @@
 import 'package:html/src/tokenizer.dart';
 import 'package:html/src/token.dart';
+import 'package:html/src/treebuilder.dart';
 import 'package:html/dom.dart';
 import 'package:source_span/source_span.dart' show SourceFile;
 
@@ -18,6 +19,30 @@ class CustomHtmlTokenizer extends HtmlTokenizer {
     } else {
       stream.unget(data);
       return super.tagOpenState();
+    }
+  }
+
+  bool closeTagOpenState() {
+    var data = stream.char();
+    if (data == '+') {
+      state = tagNameState;
+      currentToken = new EndTagToken(data);
+      return true;
+    } else {
+      stream.unget(data);
+      return super.tagOpenState();
+    }
+  }
+}
+
+class CustomTreeBuilder extends TreeBuilder {
+  CustomTreeBuilder(bool namespaceHTMLElements): super(namespaceHTMLElements);
+
+  Element insertElement(StartTagToken token) {
+    super.insertElement(token);
+
+    if (token.name == '+' && !token.data?.containsKey('do') ?? false) {
+      openElements.removeLast();
     }
   }
 }

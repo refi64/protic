@@ -31,12 +31,14 @@ Description _describeEvalResult(Description description, {String result,
 class _CompileTest extends Matcher {
   String output;
   List<String> errors;
+  Map<String, String> vars;
   FileProvider fileProvider;
-  _CompileTest({this.output, this.errors, this.fileProvider});
+  _CompileTest({this.output, this.errors, this.vars, this.fileProvider});
 
   bool matches(item, Map matchState) {
     var actualErrors = <CompileError>[];
-    var result = compileString(item, errors: actualErrors, fileProvider: fileProvider);
+    var result = compileString(item, errors: actualErrors, vars: vars,
+                               fileProvider: fileProvider);
     var actualErrorMessages = actualErrors.map((e) => e.message).toList();
 
     matchState['output'] = result;
@@ -66,24 +68,28 @@ class MockFileProvider implements FileProvider {
   String read(String file) => files[file];
 }
 
-_CompileTest compilesTo(String output, {FileProvider fileProvider}) =>
-  new _CompileTest(output: output, fileProvider: fileProvider);
-_CompileTest compilesWithErrors(List<String> errors, {FileProvider fileProvider}) =>
-  new _CompileTest(errors: errors, fileProvider: fileProvider);
+_CompileTest compilesTo(String output, {Map<String, String> vars,
+                        FileProvider fileProvider}) =>
+  new _CompileTest(output: output, vars: vars, fileProvider: fileProvider);
+_CompileTest compilesWithErrors(List<String> errors, {Map<String, String> vars,
+                                FileProvider fileProvider}) =>
+  new _CompileTest(errors: errors, vars: vars, fileProvider: fileProvider);
 _CompileTest compilesToWithErrors({String output, List<String> errors,
+                                   Map<String, String> vars,
                                    FileProvider fileProvider}) =>
-  new _CompileTest(output: output, errors: errors, fileProvider: fileProvider);
+  new _CompileTest(output: output, errors: errors, vars: vars,
+                   fileProvider: fileProvider);
 
 class _ParseTest extends Matcher {
   Expression expected;
   _ParseTest(this.expected);
 
   bool matches(item, Map matchState) {
-    var result = new ExprParser().parse(item);
+    var result = parseExpression(item);
     matchState['result'] = result;
-    if (result is Success && expected != null) {
-      return result.value == expected;
-    } else if (result is Failure && expected == null) {
+    if (result != null && expected != null) {
+      return result == expected;
+    } else if (result == null && expected == null) {
       return true;
     } else {
       return false;
@@ -94,9 +100,7 @@ class _ParseTest extends Matcher {
     description..add(expected?.toString() ?? 'failure');
   Description describeMismatch(item, Description mismatchDescription, Map matchState,
                                bool verbose) =>
-    mismatchDescription..add(matchState['result'] is Success ?
-                             matchState['result'].value.toString() :
-                             'failure');
+    mismatchDescription..add(matchState['result'] ?? 'failure');
 }
 
 _ParseTest parsesTo(Expression expected) => new _ParseTest(expected);
@@ -112,7 +116,7 @@ class _EvalTest extends Matcher {
     String result;
 
     try {
-      result = new ExprParser().parse(item).value.eval(ctx);
+      result = parseExpression(item).eval(ctx);
     } on EvalError catch (ex) {
       matchState['failure'] = ex.message;
       return failure == ex.message;

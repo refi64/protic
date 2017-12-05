@@ -5,8 +5,16 @@ import 'package:source_maps/refactor.dart';
 import 'package:source_span/source_span.dart';
 
 import 'src/custom_tokenizer.dart';
+import 'src/expression.dart';
 
 import 'dart:io';
+
+class Maybe<T> {}
+class Just<T> extends Maybe<T> {
+  T value;
+  Just(this.value);
+}
+class Nothing extends Maybe {}
 
 class CompileError {
   SourceSpan at;
@@ -37,8 +45,10 @@ class FileSystemProvider implements FileProvider {
 class PhWalker extends TreeVisitor {
   TextEditTransaction rewriter;
   List<CompileError> errors;
+  Map<String, String> vars;
   FileProvider fileProvider;
-  PhWalker(this.rewriter, this.errors, {this.fileProvider}) {
+  PhWalker(this.rewriter, {this.errors, this.vars, this.fileProvider}) {
+    this.vars ??= {};
     this.fileProvider ??= new FileSystemProvider();
   }
 
@@ -54,6 +64,19 @@ class PhWalker extends TreeVisitor {
 
   void delete(SourceSpan span) {
     edit1(span, '');
+  }
+
+  void deleteNode(Node n, {bool contents: false}) {
+    if (n.endSourceSpan != null) {
+      if (contents) {
+        delete(n.sourceSpan.expand(n.endSourceSpan));
+      } else {
+        delete(n.sourceSpan);
+        delete(n.endSourceSpan);
+      }
+    } else {
+      delete(n.sourceSpan);
+    }
   }
 
   void convertAttributes(Element el) {
@@ -100,6 +123,23 @@ class PhWalker extends TreeVisitor {
     }
   }
 
+  Maybe<String> runExpression(SourceSpan at, String expr) {
+    var ctx = new EvalContext(vars: vars);
+
+    var result = parseExpression(expr);
+    if (result == null) {
+      error(at, 'syntax error in expression');
+      return new Nothing();
+    }
+
+    try {
+      return new Just<String>(result.eval(ctx));
+    } on EvalError catch (ex) {
+      error(at, 'error evaluating expression: $ex');
+      return new Nothing();
+    }
+  }
+
   void visitElement(Element el) {
     convertAttributes(el);
 
@@ -109,10 +149,11 @@ class PhWalker extends TreeVisitor {
     }
 
     initAttributeSpans(el);
-    bool invalidated = false;
+    bool invalidated = false, deleted = false;
 
     for (var attr in el.attributes.keys) {
       var value = el.attributes[attr];
+      var valueSpan = el.attributeValueSpans[attr];
 
       if (invalidated) {
         error(el.sourceSpan, 'multiple transforms cannot be applied to one + tag');
@@ -121,9 +162,19 @@ class PhWalker extends TreeVisitor {
 
       switch (attr) {
       case 'include':
-        var contents = fileProvider.read(value);
+        var result = runExpression(valueSpan, value);
+        if (result is Nothing) {
+          continue;
+        }
+
+        var path = (result as Just<String>).value;
+        if (path == null) {
+          error(valueSpan, 'expression resulted in a null value');
+        }
+
+        var contents = fileProvider.read(path);
         if (contents == null) {
-          error(el.attributeSpans['include'], '$value does not exist');
+          error(valueSpan, '$path does not exist');
           continue;
         }
 
@@ -136,22 +187,43 @@ class PhWalker extends TreeVisitor {
         moves.add(new MovedSpan(original: includedFile.span(0, includedFile.length),
                                 target: el.sourceSpan));
         invalidated = true;
+        deleted = true;
+        break;
+      case 'if':
+        var result = runExpression(valueSpan, value);
+        if (result is Just<String> && isTruthy(result.value)) {
+          break;
+        } else {
+          deleteNode(el, contents: true);
+          return;
+        }
+      case 'do':
+        visitChildren(el);
         break;
       }
+    }
+
+    if (!deleted) {
+      deleteNode(el);
     }
   }
 }
 
-String compileString(String text, {List<CompileError> errors, url,
+String compileString(String text, {Map<String, String> vars,
+                                   List<CompileError> errors, url,
                                    FileProvider fileProvider}) {
   var source = new SourceFile.fromString(text, url: url);
   var rewriter = new TextEditTransaction(text, source);
 
   var tokenizer = new CustomHtmlTokenizer(text, generateSpans: true,
                                           sourceUrl: url);
-  var dom = html.parse(tokenizer);
+  var tree = new CustomTreeBuilder(true);
 
-  var walker = new PhWalker(rewriter, errors ?? [], fileProvider: fileProvider);
+  var parser = new html.HtmlParser(tokenizer, tree: tree);
+  var dom = parser.parse();
+
+  var walker = new PhWalker(rewriter, errors: errors ?? [], vars: vars,
+                            fileProvider: fileProvider);
   walker.visit(dom);
   var printer = rewriter.commit();
   printer.build(null);
