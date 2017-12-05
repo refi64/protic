@@ -1,0 +1,12 @@
+name: ph
+description: ph
+dependencies:
+  html: any
+  source_maps: any
+  source_span: any
+dependency_overrides:
+  html:
+    path: /home/ryan/html
+dev_dependencies:
+  collection: any
+  test: any
