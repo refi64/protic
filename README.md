@@ -20,10 +20,10 @@ Zero-effort, compile-time HTML conditionals, includes, macros, and more.
 <+ else include="prod.html">
 
 <!-- Macros -->
-<+ set var="value">
+<+ set:var="value">
 
 <+ macro="expand">
-  <p>Your name is: <+ var="$@myname"></p>
+  <p>Your name is: <+ value="$@myname"></p>
   <+ if="$@is-upper">
     <p>Is uppercase!</p>
   </+>

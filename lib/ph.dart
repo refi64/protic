@@ -160,7 +160,21 @@ class PhWalker extends TreeVisitor {
         break;
       }
 
+      if (attr.startsWith('set:')) {
+        var v = attr.substring(4);
+        vars[v] = value;
+        invalidated = true;
+        continue;
+      }
+
       switch (attr) {
+      case 'value':
+        var result = runExpression(valueSpan, value);
+        if (result is Just<String>) {
+          edit1(el.sourceSpan, result.value);
+        }
+        invalidated = deleted = true;
+        break;
       case 'include':
         var result = runExpression(valueSpan, value);
         if (result is Nothing) {
@@ -186,8 +200,7 @@ class PhWalker extends TreeVisitor {
         edit1(el.sourceSpan, contents);
         moves.add(new MovedSpan(original: includedFile.span(0, includedFile.length),
                                 target: el.sourceSpan));
-        invalidated = true;
-        deleted = true;
+        invalidated = deleted = true;
         break;
       case 'if':
         var result = runExpression(valueSpan, value);
