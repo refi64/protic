@@ -14,7 +14,7 @@ class Just<T> extends Maybe<T> {
   T value;
   Just(this.value);
 }
-class Nothing extends Maybe {}
+class Nothing<T> extends Maybe<T> {}
 
 class CompileError {
   SourceSpan at;
@@ -67,7 +67,7 @@ class PhWalker extends TreeVisitor {
   }
 
   void deleteNode(Node n, {bool contents: false}) {
-    if (n.endSourceSpan != null) {
+    if (n is Element && n.endSourceSpan != null) {
       if (contents) {
         delete(n.sourceSpan.expand(n.endSourceSpan));
       } else {
@@ -153,6 +153,7 @@ class PhWalker extends TreeVisitor {
 
     for (var attr in el.attributes.keys) {
       var value = el.attributes[attr];
+      var attrSpan = el.attributeSpans[attr];
       var valueSpan = el.attributeValueSpans[attr];
 
       if (invalidated) {
@@ -210,9 +211,12 @@ class PhWalker extends TreeVisitor {
           deleteNode(el, contents: true);
           return;
         }
+        break;
       case 'do':
         visitChildren(el);
         break;
+      default:
+        error(attrSpan, 'unknown attribute $attr');
       }
     }
 

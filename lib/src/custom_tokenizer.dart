@@ -39,11 +39,11 @@ class CustomTreeBuilder extends TreeBuilder {
   CustomTreeBuilder(bool namespaceHTMLElements): super(namespaceHTMLElements);
 
   Element insertElement(StartTagToken token) {
-    super.insertElement(token);
-
+    var result = super.insertElement(token);
     if (token.name == '+' && !token.data?.containsKey('do') ?? false) {
       openElements.removeLast();
     }
+    return result;
   }
 }
 

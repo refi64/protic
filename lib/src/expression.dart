@@ -14,7 +14,9 @@ class EvalError implements Exception {
 
 bool isTruthy(String str) => str != null;
 
-class Expression {}
+abstract class Expression {
+  String eval(EvalContext ctx);
+}
 
 enum RelationOp { and, or }
 
@@ -32,6 +34,7 @@ class Relation extends Expression {
     case RelationOp.and: return isTruthy(leftEval) ? right.eval(ctx) : null;
     case RelationOp.or: return isTruthy(leftEval) ? leftEval : right.eval(ctx);
     }
+    return "";
   }
 }
 

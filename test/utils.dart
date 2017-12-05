@@ -1,5 +1,4 @@
 import 'package:collection/collection.dart';
-import 'package:petitparser/petitparser.dart';
 import 'package:ph/ph.dart';
 import 'package:ph/src/expression.dart';
 import 'package:test/test.dart';
