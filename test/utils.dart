@@ -17,6 +17,17 @@ Description _describeValues(Description description, {String output,
   return description;
 }
 
+Description _describeEvalResult(Description description, {String result,
+                                String failure}) {
+  if (failure != null) {
+    return description..add('failure: $failure');
+  } else if (result != null) {
+    return description..add('result: ($result)');
+  } else {
+    return description..add('result: null');
+  }
+}
+
 class _CompileTest extends Matcher {
   String output;
   List<String> errors;
@@ -90,3 +101,35 @@ class _ParseTest extends Matcher {
 
 _ParseTest parsesTo(Expression expected) => new _ParseTest(expected);
 final parseFails = new _ParseTest(null);
+
+class _EvalTest extends Matcher {
+  String expected, failure;
+  Map<String, String> vars, macroVars;
+  _EvalTest({this.expected, this.failure, this.vars, this.macroVars});
+
+  bool matches(item, Map matchState) {
+    var ctx = new EvalContext(vars: this.vars ?? {}, macroVars: this.macroVars);
+    String result;
+
+    try {
+      result = new ExprParser().parse(item).value.eval(ctx);
+    } on EvalError catch (ex) {
+      matchState['failure'] = ex.message;
+      return failure == ex.message;
+    }
+    matchState['result'] = result;
+    return result == expected;
+  }
+
+  Description describe(Description description) =>
+    _describeEvalResult(description, result: expected, failure: failure);
+  Description describeMismatch(item, Description mismatchDescription, Map matchState,
+                               bool verbose) =>
+    _describeEvalResult(mismatchDescription, result: matchState['result'],
+                        failure: matchState['failure']);
+}
+
+_EvalTest evalsTo(String expected, {vars, macroVars}) =>
+  new _EvalTest(expected: expected, vars: vars, macroVars: macroVars);
+_EvalTest evalFails(String error, {vars, macroVars}) =>
+  new _EvalTest(failure: error, vars: vars, macroVars: macroVars);

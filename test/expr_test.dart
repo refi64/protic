@@ -6,7 +6,10 @@ void main() {
   test('variables are parsed correctly', () {
     expect(r'$a', parsesTo(new Var('a')));
     expect(r'$myLong_Variable', parsesTo(new Var('myLong_Variable')));
+    expect(r'$?exists', parsesTo(new Var('exists', isOptional: true)));
     expect(r'$@myMacroVar', parsesTo(new Var('myMacroVar', isMacroVar: true)));
+    expect(r'$@?myMacroVar', parsesTo(new Var('myMacroVar', isMacroVar: true,
+                                              isOptional: true)));
     expect(r'$', parseFails);
   });
 
@@ -39,5 +42,9 @@ void main() {
                                                      right: new Var('d'),
                                                      op: RelationOp.or),
                                  op: RelationOp.and)));
+  });
+
+  test('negations are parsed correctly', () {
+    expect(r'!$a', parsesTo(new Negation(new Var('a'))));
   });
 }
