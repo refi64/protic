@@ -176,6 +176,12 @@ class PhWalker extends TreeVisitor {
         }
         invalidated = deleted = true;
         break;
+      case 'print':
+        var result = runExpression(valueSpan, value);
+        if (result is Just<String>) {
+          print(result.value);
+        }
+        break;
       case 'include':
         var result = runExpression(valueSpan, value);
         if (result is Nothing) {
