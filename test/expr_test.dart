@@ -26,6 +26,11 @@ void main() {
     expect("'", parseFails);
   });
 
+  test('concatenations are parsed correctly', () {
+    expect('a b', parsesTo(new Concat([new Text('a'), new Text('b')], addSpace: true)));
+    expect('a + b', parsesTo(new Concat([new Text('a'), new Text('b')])));
+  });
+
   test('comparisons are parsed correctly', () {
     expect(r'$a == b', parsesTo(new Comparison(left: new Var('a'), right: new Text('b'),
                                                op: ComparisonOp.eq)));
