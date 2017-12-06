@@ -1,5 +1,5 @@
+import 'package:collection/collection.dart';
 import 'package:petitparser/petitparser.dart';
-
 
 class EvalContext {
   Map<String, String> vars, macroVars;
@@ -69,6 +69,23 @@ class Negation extends Expression {
   String eval(EvalContext ctx) => isTruthy(expr.eval(ctx)) ? null : '';
 }
 
+class Concat extends Expression {
+  Function listEquals = const ListEquality().equals;
+
+  List<Expression> parts;
+  bool addSpace;
+  Concat(this.parts, {this.addSpace: false});
+  String toString() => 'Concat($parts, addSpace: $addSpace)';
+  bool operator==(other) => other is Concat && listEquals(parts, other.parts) &&
+                            addSpace == other.addSpace;
+
+  String eval(EvalContext ctx) =>
+    parts
+      .map((p) => p.eval(ctx))
+      .where((e) => e != null)
+      .join(addSpace ? ' ' : '');
+}
+
 class Var extends Expression {
   String name;
   bool isMacroVar, isOptional;
@@ -129,8 +146,13 @@ class ExprGrammarDefinition extends GrammarDefinition {
   relExpr() => ref(cmpExpr) & (ref(relOp) & ref(cmpExpr)).optional();
   relOp() => ref(token, string('and') | string('or'));
 
-  cmpExpr() => ref(negExpr) & (ref(cmpOp) & ref(negExpr)).optional();
+  cmpExpr() => ref(addExpr) & (ref(cmpOp) & ref(addExpr)).optional();
   cmpOp() => ref(token, string('==') | string('!='));
+
+  addExpr() => ref(concatExpr) & (ref(addOp) & ref(concatExpr)).pick(1).star();
+  addOp() => ref(token, string('+'));
+
+  concatExpr() => ref(negExpr).plus();
 
   negExpr() => ref(token, char('!')).optional() & ref(simpleExpr);
 
@@ -147,7 +169,8 @@ class ExprGrammarDefinition extends GrammarDefinition {
   mkqstring(delim) => string(delim) & mkchar(delim).star() & string(delim);
   mkchar(delim) => ((char('\\') & any()).pick(1) | string(delim).neg());
 
-  bareword() => ref(token, noneOf('\$"\'') & whitespace().neg().star());
+  bareword() => ref(token, ref(relOp).not() & noneOf('\$"\'+!=()') &
+                           whitespace().neg().star());
 
   parenExpr() => (char('(') & ref(expr) & char(')')).pick(1);
 }
@@ -178,6 +201,12 @@ class ExprParserDefinition extends ExprGrammarDefinition {
                                             new Comparison(left: p[0], right: p[1][1],
                                                            op: p[1][0]));
   cmpOp() => super.cmpOp().map((p) => cmpOpMap[p]);
+
+  addExpr() => super.addExpr().map((p) => p[1].isEmpty ? p[0] :
+                                          new Concat([p[0]]..addAll(p[1])));
+
+  concatExpr() => super.concatExpr().map((p) => p.length == 1 ? p[0] :
+                                                new Concat(p, addSpace: true));
 
   negExpr() => super.negExpr().map((p) => p[0] == null ? p[1] : new Negation(p[1]));
 

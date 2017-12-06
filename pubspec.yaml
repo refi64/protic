@@ -1,6 +1,7 @@
 name: ph
 description: ph
 dependencies:
+  collection: any
   html: any
   petitparser: any
   source_maps: any
@@ -9,5 +10,4 @@ dependency_overrides:
   html:
     path: /home/ryan/html
 dev_dependencies:
-  collection: any
   test: any

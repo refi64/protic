@@ -22,6 +22,15 @@ void main() {
     expect(r'!$?a', evalsTo(''));
   });
 
+  test('concatenations are evaluated correctly', () {
+    expect('my name  is', evalsTo('my name is'));
+    expect(r'my name is $name', evalsTo('my name is test', vars: {'name': 'test'}));
+    expect('name + .', evalsTo('name.'));
+    expect(r'$name + .', evalsTo('test.', vars: {'name': 'test'}));
+    expect(r'this is empty: $?empty', evalsTo('this is empty:'));
+    expect(r'this is also empty: + $?empty', evalsTo('this is also empty:'));
+  });
+
   test('comparisons are evaluated correctly', () {
     expect('a == a', evalsTo(''));
     expect('a != a', evalsTo(null));

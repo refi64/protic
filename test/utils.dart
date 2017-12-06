@@ -99,7 +99,7 @@ class _ParseTest extends Matcher {
     description..add(expected?.toString() ?? 'failure');
   Description describeMismatch(item, Description mismatchDescription, Map matchState,
                                bool verbose) =>
-    mismatchDescription..add(matchState['result'] ?? 'failure');
+    mismatchDescription..add(matchState['result']?.toString() ?? 'failure');
 }
 
 _ParseTest parsesTo(Expression expected) => new _ParseTest(expected);
