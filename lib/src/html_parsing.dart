@@ -44,7 +44,7 @@ class CustomHtmlTokenizer extends HtmlTokenizer {
       return true;
     } else {
       stream.unget(data);
-      return super.tagOpenState();
+      return super.closeTagOpenState();
     }
   }
 }
