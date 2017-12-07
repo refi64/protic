@@ -49,9 +49,12 @@ class PhWalker extends TreeVisitor {
   PhWalker(this.rewriter, {this.errors, this.vars, this.fileProvider}) {
     this.vars ??= {};
     this.fileProvider ??= new FileSystemProvider();
+    this.scopes.add(vars);
+    this.scopes.add(<String, String>{});
   }
 
-  List<MovedSpan> moves = [];
+  var moves = <MovedSpan>[];
+  var scopes = <Map<String, String>>[];
   bool lastIfStatus = null;
 
   void error(SourceSpan at, String message) {
@@ -124,7 +127,12 @@ class PhWalker extends TreeVisitor {
   }
 
   Maybe<String> runExpression(SourceSpan at, String expr) {
-    var ctx = new EvalContext(vars: vars);
+    var currentScope = <String, String>{};
+    for (var scope in scopes) {
+      currentScope.addAll(scope);
+    }
+
+    var ctx = new EvalContext(vars: currentScope);
 
     var result = parseExpression(expr);
     if (result == null) {
@@ -138,6 +146,14 @@ class PhWalker extends TreeVisitor {
       error(at, 'error evaluating expression: $ex');
       return new Nothing();
     }
+  }
+
+  Map<String, String> getAttributesAfter(Map attributes, String key) {
+    var keys = attributes.keys.toList();
+    var values = attributes.values.toList();
+    var index = keys.indexOf(key);
+
+    return new Map.fromIterables(keys.sublist(index + 1), values.sublist(index + 1));
   }
 
   void visitElement(Element el) {
@@ -163,12 +179,7 @@ class PhWalker extends TreeVisitor {
 
       switch (attr) {
       case 'set':
-        var keys = el.attributes.keys.toList();
-        var values = el.attributes.values.toList();
-        var setIndex = keys.indexOf('set');
-
-        vars..addAll(new Map.fromIterables(keys.sublist(setIndex + 1),
-                                           values.sublist(setIndex + 1)));
+        scopes.last..addAll(getAttributesAfter(el.attributes, 'set'));
         break outer;
       case 'value':
         var result = runExpression(valueSpan, value);
@@ -202,14 +213,17 @@ class PhWalker extends TreeVisitor {
 
         var includedFile = new SourceFile.fromString(contents, url: value);
 
-        contents = compileString(contents, errors: errors, url: value,
-                                 fileProvider: fileProvider);
+        var extraVars = getAttributesAfter(el.attributes, 'include');
+
+        contents = compileString(contents, vars: new Map.from(vars)..addAll(extraVars),
+                                 errors: errors, url: value, fileProvider: fileProvider);
 
         edit1(el.sourceSpan, contents);
         moves.add(new MovedSpan(original: includedFile.span(0, includedFile.length),
                                 target: el.sourceSpan));
-        invalidated = deleted = true;
-        break;
+
+        deleted = true;
+        break outer;
       case 'if':
         var orelseIndexes = <int>[];
 

@@ -16,4 +16,18 @@ void main() {
            compilesWithErrors(['noexists.html does not exist'],
                               fileProvider: fileProvider));
   });
+
+  test('include passes down proper variables', () {
+    var fileProvider = new MockFileProvider({
+      'file.html': r'<+ value="$var">',
+    });
+
+    expect('<+ set var="1"><+ include="file.html">',
+           compilesWithErrors([r'error evaluating expression: undefined variable $var'],
+                              fileProvider: fileProvider));
+    expect('<+ include="file.html">',
+           compilesTo('1', vars: {'var': '1'}, fileProvider: fileProvider));
+    expect('<+ include="file.html" var="1">',
+           compilesTo('1', fileProvider: fileProvider));
+  });
 }

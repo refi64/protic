@@ -7,7 +7,8 @@ import 'package:source_span/source_span.dart' show SourceFile;
 
 bool _isSingleLinePlus(Token token) =>
   token.name == '+' && token.data != null &&
-  !(token.data.containsKey('do') && !token.data.containsKey('orelse'));
+  !((token.data.containsKey('do') && !token.data.containsKey('orelse')) ||
+    token.data.containsKey('macro'));
 
 class CustomHtmlTokenizer extends HtmlTokenizer {
   CustomHtmlTokenizer(String text, {bool generateSpans, bool attributeSpans: false,
