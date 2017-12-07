@@ -5,7 +5,7 @@ import 'package:source_span/source_span.dart';
 
 import 'html_parsing.dart' as html;
 import 'expression.dart';
-import '../api.dart';
+import '../api.dart' hide compile;
 
 class Maybe<T> {}
 class Just<T> extends Maybe<T> {
@@ -28,18 +28,17 @@ class Macro {
 
 class PhWalker extends TreeVisitor {
   TextEditTransaction rewriter;
-  List<CompileError> errors;
   Map<String, String> vars, macroVars;
   FileProvider fileProvider;
   String slot;
-  PhWalker(this.rewriter, {this.errors, this.vars, this.macroVars, this.fileProvider,
-                           this.slot}) {
+  PhWalker(this.rewriter, {this.vars, this.macroVars, this.fileProvider, this.slot}) {
     this.vars ??= {};
     this.macroVars ??= {};
     this.scopes.add(vars);
     this.scopes.add(<String, String>{});
   }
 
+  var errors = <CompileError>[];
   var moves = <MovedSpan>[];
   var scopes = <Map<String, String>>[];
   var macros = <String, Macro>{};
@@ -182,12 +181,12 @@ class PhWalker extends TreeVisitor {
         }
         break;
       case 'include':
-        var result = runExpression(valueSpan, value);
-        if (result is Nothing) {
+        var maybePath = runExpression(valueSpan, value);
+        if (maybePath is Nothing) {
           continue;
         }
 
-        var path = (result as Just<String>).value;
+        var path = (maybePath as Just<String>).value;
         if (path == null) {
           error(valueSpan, 'expression resulted in a null value');
           continue;
@@ -208,12 +207,13 @@ class PhWalker extends TreeVisitor {
 
         var extraVars = getAttributesAfter(el.attributes, 'include');
 
-        contents = compileString(contents, vars: new Map.from(vars)..addAll(extraVars),
-                                 errors: errors, url: value, fileProvider: fileProvider);
+        var result = compile(contents, vars: new Map.from(vars)..addAll(extraVars),
+                             url: value, fileProvider: fileProvider);
 
-        edit1(el.sourceSpan, contents);
+        edit1(el.sourceSpan, result.code);
         moves.add(new MovedSpan(original: includedFile.span(0, includedFile.length),
                                 target: el.sourceSpan));
+        errors..addAll(result.errors);
 
         deleted = true;
         break outer;
@@ -353,17 +353,15 @@ class PhWalker extends TreeVisitor {
 
     var macroVars = getAttributesAfter(el.attributes, name);
 
-    var macroErrors = <CompileError>[];
-    var compiled = compileString(macro.contents, vars: vars, macroVars: macroVars,
-                                 errors: macroErrors, url: rewriter.file.url,
-                                 fileProvider: fileProvider,
-                                 slot: macro.slot ? getInnerHtmlSpan(el).text : '');
+    var result = compile(macro.contents, vars: vars, macroVars: macroVars,
+                           url: rewriter.file.url, fileProvider: fileProvider,
+                           slot: macro.slot ? getInnerHtmlSpan(el).text : '');
 
-    for (var error in macroErrors) {
+    for (var error in result.errors) {
       errors.add(new CompileError(el.sourceSpan, error.message));
     }
 
-    edit1(getFullElementSpan(el), compiled);
+    edit1(getFullElementSpan(el), result.code);
 
     scopes = originalScopes;
   }
@@ -381,20 +379,21 @@ class PhWalker extends TreeVisitor {
   }
 }
 
-String compileString(String text, {Map<String, String> vars,
-                                   Map<String, String> macroVars,
-                                   List<CompileError> errors, url,
-                                   FileProvider fileProvider,
-                                   String slot}) {
+CompileResult compile(String text, {Map<String, String> vars,
+                      Map<String, String> macroVars, url, FileProvider fileProvider,
+                      String slot}) {
   var source = new SourceFile.fromString(text, url: url);
   var rewriter = new TextEditTransaction(text, source);
 
   var dom = html.parse(text, url: url);
-  var walker = new PhWalker(rewriter, errors: errors ?? [], vars: vars,
-                            macroVars: macroVars, fileProvider: fileProvider,
-                            slot: slot);
+  var walker = new PhWalker(rewriter, vars: vars, macroVars: macroVars,
+                            fileProvider: fileProvider, slot: slot);
   walker.visit(dom);
   var printer = rewriter.commit();
   printer.build(null);
-  return printer.text;
+  return new CompileResult(
+    code: printer.text,
+    sourceMap: printer.map,
+    errors: walker.errors,
+  );
 }

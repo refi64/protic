@@ -1,5 +1,3 @@
-import 'dart:js';
-
 import '../api.dart';
 import 'js/node_fs.dart';
 

@@ -1,9 +1,9 @@
 import 'package:ph/ph.dart';
 
 void main(List<String> args) {
-  var errors = [];
-  print(compileString(args[0], errors: errors, vars: {'var': 'test'}));
-  for (var error in errors) {
+  var result = compile(args[0], vars: {'var': 'test'});
+  print(result.code);
+  for (var error in result.errors) {
     print(error);
   }
 }

@@ -35,18 +35,16 @@ class _CompileTest extends Matcher {
   _CompileTest({this.output, this.errors, this.vars, this.fileProvider});
 
   bool matches(item, Map matchState) {
-    var actualErrors = <CompileError>[];
-    var result = compileString(item, errors: actualErrors, vars: vars,
-                               fileProvider: fileProvider);
-    var actualErrorMessages = actualErrors.map((e) => e.message).toList();
+    var result = compile(item, vars: vars, fileProvider: fileProvider);
+    var actualErrors = result.errors.map((e) => e.message).toList();
 
-    matchState['output'] = result;
-    matchState['errors'] = actualErrorMessages;
+    matchState['output'] = result.code;
+    matchState['errors'] = actualErrors;
 
     if (output != null && result != output) {
       return false;
     }
-    if (errors != null && !const ListEquality().equals(actualErrorMessages, errors)) {
+    if (errors != null && !const ListEquality().equals(actualErrors, errors)) {
       return false;
     }
     return true;

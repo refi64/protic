@@ -49,14 +49,25 @@ class JsSourceSpan {
 class JsCompileError {
   external JsSourceSpan get at;
   external String get message;
-  external factory JsCompileError({JsSourceSpan at, String message});
+  external String get formattedMessage;
+  external factory JsCompileError({JsSourceSpan at, String message,
+                                   String formattedMessage});
+}
+
+@JS()
+@anonymous
+class JsCompileResult {
+  external String get code;
+  external String get sourceMap;
+  external List<JsCompileError> get errors;
+  external factory JsCompileResult({String code, String sourceMap,
+                                    List<JsCompileError> errors});
 }
 
 @JS()
 @anonymous
 class JsCompileArgs {
   external dynamic get vars;
-  external List<JsCompileError> get errors;
   external String get url;
   external Function get fileProvider;
 }
@@ -67,11 +78,9 @@ class JsFileProviderWrapper implements FileProvider {
   String read(String path) => reader(path);
 }
 
-String jsCompileString(String text, [JsCompileArgs args]) {
+JsCompileResult jsCompile(String text, [JsCompileArgs args]) {
   var vars = <String, String>{};
   var url, fileProvider;
-
-  var errors = <CompileError>[];
 
   if (args?.vars != null) {
     for (var key in objectKeys(args.vars)) {
@@ -85,28 +94,29 @@ String jsCompileString(String text, [JsCompileArgs args]) {
     fileProvider = new JsFileProviderWrapper(args.fileProvider);
   }
 
-  var result = compileString(text, vars: vars, errors: errors, url: url,
-                             fileProvider: fileProvider);
+  var result = compile(text, vars: vars, url: url, fileProvider: fileProvider);
+  var jsErrors = <JsCompileError>[];
 
-  if (args?.errors != null) {
-    var jsErrors = args.errors;
-
-    for (var error in errors) {
-      jsErrors.add(new JsCompileError(
-        at: new JsSourceSpan(
-          start: sourceLocationToJs(error.at.start),
-          end: sourceLocationToJs(error.at.end),
-          text: error.at.text,
-          url: error.at.sourceUrl?.toString(),
-        ),
-        message: error.message,
-      ));
-    }
+  for (var error in result.errors) {
+    jsErrors.add(new JsCompileError(
+      at: new JsSourceSpan(
+        start: sourceLocationToJs(error.at.start),
+        end: sourceLocationToJs(error.at.end),
+        text: error.at.text,
+        url: error.at.sourceUrl?.toString(),
+      ),
+      message: error.message,
+      formattedMessage: error.toString(),
+    ));
   }
 
-  return result;
+  return new JsCompileResult(
+    code: result.code,
+    sourceMap: result.sourceMap,
+    errors: jsErrors,
+  );
 }
 
 void main() {
-  exports.compile = allowInterop(jsCompileString);
+  exports.compile = allowInterop(jsCompile);
 }
