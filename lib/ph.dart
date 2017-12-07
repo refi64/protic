@@ -152,7 +152,7 @@ class PhWalker extends TreeVisitor {
     initAttributeSpans(el);
     bool invalidated = false, deleted = false;
 
-    for (var attr in el.attributes.keys) {
+    outer:for (var attr in el.attributes.keys) {
       var value = el.attributes[attr];
       var attrSpan = el.attributeSpans[attr];
       var valueSpan = el.attributeValueSpans[attr];
@@ -162,14 +162,15 @@ class PhWalker extends TreeVisitor {
         break;
       }
 
-      if (attr.startsWith('set:')) {
-        var v = attr.substring(4);
-        vars[v] = value;
-        invalidated = true;
-        continue;
-      }
-
       switch (attr) {
+      case 'set':
+        var keys = el.attributes.keys.toList();
+        var values = el.attributes.values.toList();
+        var setIndex = keys.indexOf('set');
+
+        vars..addAll(new Map.fromIterables(keys.sublist(setIndex + 1),
+                                           values.sublist(setIndex + 1)));
+        break outer;
       case 'value':
         var result = runExpression(valueSpan, value);
         if (result is Just<String>) {

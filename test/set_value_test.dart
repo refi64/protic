@@ -3,6 +3,6 @@ import 'utils.dart';
 
 void main() {
   test('set: and value work', () {
-    expect(r'<+ set:var="value">var is: <+ value="$var">', compilesTo('var is: value'));
+    expect(r'<+ set a="v-a" b="v-b"><+ value="$a $b">', compilesTo('v-a v-b'));
   });
 }
