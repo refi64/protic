@@ -41,13 +41,22 @@ class FileSystemProvider implements FileProvider {
   }
 }
 
+class Macro {
+  String contents;
+  List<Map<String, String>> scopes;
+  Macro({this.contents, this.scopes});
+}
+
 class PhWalker extends TreeVisitor {
   TextEditTransaction rewriter;
   List<CompileError> errors;
-  Map<String, String> vars;
+  Map<String, String> vars, macroVars;
   FileProvider fileProvider;
-  PhWalker(this.rewriter, {this.errors, this.vars, this.fileProvider}) {
+  String slot;
+  PhWalker(this.rewriter, {this.errors, this.vars, this.macroVars, this.fileProvider,
+                           this.slot}) {
     this.vars ??= {};
+    this.macroVars ??= {};
     this.fileProvider ??= new FileSystemProvider();
     this.scopes.add(vars);
     this.scopes.add(<String, String>{});
@@ -55,7 +64,14 @@ class PhWalker extends TreeVisitor {
 
   var moves = <MovedSpan>[];
   var scopes = <Map<String, String>>[];
+  var macros = <String, Macro>{};
   bool lastIfStatus = null;
+
+  SourceSpan getInnerHtmlSpan(Element el) =>
+    el.sourceSpan.file.span(el.sourceSpan.end.offset, el.endSourceSpan.start.offset);
+
+  SourceSpan getFullElementSpan(Element el) =>
+    el.sourceSpan.expand(el.endSourceSpan);
 
   void error(SourceSpan at, String message) {
     errors.add(new CompileError(at, message));
@@ -72,7 +88,7 @@ class PhWalker extends TreeVisitor {
   void deleteNode(Node n, {bool contents: false}) {
     if (n is Element && n.endSourceSpan != null) {
       if (contents) {
-        delete(n.sourceSpan.expand(n.endSourceSpan));
+        delete(getFullElementSpan(n));
       } else {
         delete(n.sourceSpan);
         delete(n.endSourceSpan);
@@ -132,7 +148,7 @@ class PhWalker extends TreeVisitor {
       currentScope.addAll(scope);
     }
 
-    var ctx = new EvalContext(vars: currentScope);
+    var ctx = new EvalContext(vars: currentScope, macroVars: macroVars);
 
     var result = parseExpression(expr);
     if (result == null) {
@@ -156,14 +172,7 @@ class PhWalker extends TreeVisitor {
     return new Map.fromIterables(keys.sublist(index + 1), values.sublist(index + 1));
   }
 
-  void visitElement(Element el) {
-    convertAttributes(el);
-
-    if (el.localName != '+') {
-      visitChildren(el);
-      return;
-    }
-
+  void compilePlus(Element el) {
     html.initAttributeSpans(el);
     bool invalidated = false, deleted = false;
 
@@ -293,6 +302,23 @@ class PhWalker extends TreeVisitor {
       case 'do':
         visitChildren(el);
         break;
+      case 'macro':
+        if (value.isEmpty) {
+          error(attrSpan, 'macro name cannot be empty');
+          continue;
+        }
+        macros[value] = new Macro(contents: getInnerHtmlSpan(el).text, scopes: scopes);
+        deleteNode(el, contents: true);
+        invalidated = deleted = true;
+        break;
+      case 'slot':
+        if (slot == null) {
+          error(el.sourceSpan, 'slot cannot be used outside a macro');
+          continue;
+        }
+        edit1(el.sourceSpan, slot);
+        invalidated = deleted = true;
+        break;
       default:
         error(attrSpan, 'unknown attribute $attr');
       }
@@ -304,17 +330,73 @@ class PhWalker extends TreeVisitor {
       deleteNode(el);
     }
   }
+
+  void compileMacroExpansion(Element el) {
+    html.initAttributeSpans(el);
+
+    if (el.attributes.length == 0) {
+      error(el.sourceSpan, 'macro expansion requires a macro name to expand');
+      return;
+    }
+
+    var name = el.attributes.keys.first;
+    var nameSpan = el.attributeSpans[name];
+    if (el.attributes.values.first.isNotEmpty) {
+      error(nameSpan, 'macro name should not have a value');
+      return;
+    }
+
+    var macro = macros[name];
+    if (macro == null) {
+      error(nameSpan, 'undefined macro $name');
+      return;
+    }
+
+    var originalScopes = scopes;
+    scopes = macro.scopes;
+
+    var macroVars = getAttributesAfter(el.attributes, name);
+
+    var macroErrors = <CompileError>[];
+    var compiled = compileString(macro.contents, vars: vars, macroVars: macroVars,
+                                 errors: macroErrors, url: rewriter.file.url,
+                                 fileProvider: fileProvider,
+                                 slot: getInnerHtmlSpan(el).text);
+
+    for (var error in macroErrors) {
+      errors.add(new CompileError(el.sourceSpan, error.message));
+    }
+
+    edit1(getFullElementSpan(el), compiled);
+
+    scopes = originalScopes;
+  }
+
+  void visitElement(Element el) {
+    convertAttributes(el);
+
+    if (el.localName == '+') {
+      compilePlus(el);
+    } else if (el.localName == '+@') {
+      compileMacroExpansion(el);
+    } else {
+      visitChildren(el);
+    }
+  }
 }
 
 String compileString(String text, {Map<String, String> vars,
+                                   Map<String, String> macroVars,
                                    List<CompileError> errors, url,
-                                   FileProvider fileProvider}) {
+                                   FileProvider fileProvider,
+                                   String slot}) {
   var source = new SourceFile.fromString(text, url: url);
   var rewriter = new TextEditTransaction(text, source);
 
   var dom = html.parse(text, url: url);
   var walker = new PhWalker(rewriter, errors: errors ?? [], vars: vars,
-                            fileProvider: fileProvider);
+                            macroVars: macroVars, fileProvider: fileProvider,
+                            slot: slot);
   walker.visit(dom);
   var printer = rewriter.commit();
   printer.build(null);
