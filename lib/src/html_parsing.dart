@@ -2,6 +2,7 @@ import 'package:html/src/tokenizer.dart';
 import 'package:html/src/token.dart';
 import 'package:html/src/treebuilder.dart';
 import 'package:html/dom.dart';
+import 'package:html/parser.dart';
 import 'package:source_span/source_span.dart' show SourceFile;
 
 class CustomHtmlTokenizer extends HtmlTokenizer {
@@ -80,4 +81,13 @@ void initAttributeSpans(Node n) {
 
   // Restore the correct source span.
   n.sourceSpan = sourceSpan;
+}
+
+Document parse(String text, {url}) {
+  var tokenizer = new CustomHtmlTokenizer(text, generateSpans: true,
+                                          sourceUrl: url);
+  var tree = new CustomTreeBuilder(true);
+
+  var parser = new HtmlParser(tokenizer, tree: tree);
+  return parser.parse();
 }

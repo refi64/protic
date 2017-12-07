@@ -1,10 +1,9 @@
 import 'package:html/dom_parsing.dart';
 import 'package:html/dom.dart';
-import 'package:html/parser.dart' as html;
 import 'package:source_maps/refactor.dart';
 import 'package:source_span/source_span.dart';
 
-import 'src/custom_tokenizer.dart';
+import 'src/html_parsing.dart' as html;
 import 'src/expression.dart';
 
 import 'dart:io';
@@ -149,7 +148,7 @@ class PhWalker extends TreeVisitor {
       return;
     }
 
-    initAttributeSpans(el);
+    html.initAttributeSpans(el);
     bool invalidated = false, deleted = false;
 
     outer:for (var attr in el.attributes.keys) {
@@ -250,13 +249,7 @@ String compileString(String text, {Map<String, String> vars,
   var source = new SourceFile.fromString(text, url: url);
   var rewriter = new TextEditTransaction(text, source);
 
-  var tokenizer = new CustomHtmlTokenizer(text, generateSpans: true,
-                                          sourceUrl: url);
-  var tree = new CustomTreeBuilder(true);
-
-  var parser = new html.HtmlParser(tokenizer, tree: tree);
-  var dom = parser.parse();
-
+  var dom = html.parse(text, url: url);
   var walker = new PhWalker(rewriter, errors: errors ?? [], vars: vars,
                             fileProvider: fileProvider);
   walker.visit(dom);
