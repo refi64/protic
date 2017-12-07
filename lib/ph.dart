@@ -53,6 +53,7 @@ class PhWalker extends TreeVisitor {
   }
 
   List<MovedSpan> moves = [];
+  bool lastIfStatus = null;
 
   void error(SourceSpan at, String message) {
     errors.add(new CompileError(at, message));
@@ -211,13 +212,21 @@ class PhWalker extends TreeVisitor {
         break;
       case 'if':
         var result = runExpression(valueSpan, value);
-        if (result is Just<String> && isTruthy(result.value)) {
-          break;
-        } else {
-          deleteNode(el, contents: true);
-          return;
+        if (result is Just<String>) {
+          lastIfStatus = isTruthy(result.value);
+          if (lastIfStatus) {
+            break;
+          }
         }
-        break;
+        deleteNode(el, contents: true);
+        return;
+      case 'else':
+        if (lastIfStatus == false) {
+          break;
+        }
+        lastIfStatus = null;
+        deleteNode(el, contents: true);
+        return;
       case 'do':
         visitChildren(el);
         break;
@@ -225,6 +234,8 @@ class PhWalker extends TreeVisitor {
         error(attrSpan, 'unknown attribute $attr');
       }
     }
+
+    lastIfStatus = null;
 
     if (!deleted) {
       deleteNode(el);
