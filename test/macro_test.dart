@@ -8,18 +8,20 @@ void main() {
   });
 
   test('macro expansions work', () {
-    expect('<+ macro="expand">expand</+><+@ expand></+@>', compilesTo('expand'));
-    expect('<+@ expand></+@>', compilesWithErrors(['undefined macro expand']));
-    expect('<+@></+@>',
+    expect('<+ macro="expand">expand</+><+@ expand>', compilesTo('expand'));
+    expect('<+@ expand>', compilesWithErrors(['undefined macro expand']));
+    expect('<+@>',
            compilesWithErrors(['macro expansion requires a macro name to expand']));
-    expect('<+@ name="value"></+@>',
+    expect('<+@ name="value">',
            compilesWithErrors(['macro name should not have a value']));
-    expect(r'<+ macro="expand"><+ value="var: $@var"></+><+@ expand var="1"></+@>',
+    expect(r'<+ macro="expand"><+ value="var: $@var"></+><+@ expand var="1">',
            compilesTo('var: 1'));
   });
 
   test('macro slots work', () {
-    expect('<+ macro="expand"><+ slot></+><+@ expand>slot contents</+@>',
+    expect('<+ macro="expand" slot><+ slot></+><+@ expand>slot contents</+@>',
            compilesTo('slot contents'));
+    expect('<+ macro="expand" slot></+><+@ expand>',
+           compilesWithErrors(['macro requires a slot, but none was given']));
   });
 }

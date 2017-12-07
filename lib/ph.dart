@@ -44,7 +44,8 @@ class FileSystemProvider implements FileProvider {
 class Macro {
   String contents;
   List<Map<String, String>> scopes;
-  Macro({this.contents, this.scopes});
+  bool slot;
+  Macro({this.contents, this.scopes, this.slot});
 }
 
 class PhWalker extends TreeVisitor {
@@ -71,7 +72,7 @@ class PhWalker extends TreeVisitor {
     el.sourceSpan.file.span(el.sourceSpan.end.offset, el.endSourceSpan.start.offset);
 
   SourceSpan getFullElementSpan(Element el) =>
-    el.sourceSpan.expand(el.endSourceSpan);
+    el.endSourceSpan != null ? el.sourceSpan.expand(el.endSourceSpan) : el.sourceSpan;
 
   void error(SourceSpan at, String message) {
     errors.add(new CompileError(at, message));
@@ -181,7 +182,7 @@ class PhWalker extends TreeVisitor {
       var attrSpan = el.attributeSpans[attr];
       var valueSpan = el.attributeValueSpans[attr];
 
-      if (invalidated) {
+      if (invalidated && !(el.attributes.containsKey('macro') && attr == 'slot')) {
         error(el.sourceSpan, 'multiple transforms cannot be applied to one + tag');
         break;
       }
@@ -307,11 +308,18 @@ class PhWalker extends TreeVisitor {
           error(attrSpan, 'macro name cannot be empty');
           continue;
         }
-        macros[value] = new Macro(contents: getInnerHtmlSpan(el).text, scopes: scopes);
+
+        macros[value] = new Macro(contents: getInnerHtmlSpan(el).text, scopes: scopes,
+                                  slot: el.attributes.containsKey('slot'));
+
         deleteNode(el, contents: true);
         invalidated = deleted = true;
         break;
       case 'slot':
+        if (el.attributes.containsKey('macro')) {
+          continue;
+        }
+
         if (slot == null) {
           error(el.sourceSpan, 'slot cannot be used outside a macro');
           continue;
@@ -352,6 +360,11 @@ class PhWalker extends TreeVisitor {
       return;
     }
 
+    if (macro.slot && el.endSourceSpan == null) {
+      error(el.sourceSpan, 'macro requires a slot, but none was given');
+      return;
+    }
+
     var originalScopes = scopes;
     scopes = macro.scopes;
 
@@ -361,7 +374,7 @@ class PhWalker extends TreeVisitor {
     var compiled = compileString(macro.contents, vars: vars, macroVars: macroVars,
                                  errors: macroErrors, url: rewriter.file.url,
                                  fileProvider: fileProvider,
-                                 slot: getInnerHtmlSpan(el).text);
+                                 slot: macro.slot ? getInnerHtmlSpan(el).text : '');
 
     for (var error in macroErrors) {
       errors.add(new CompileError(el.sourceSpan, error.message));

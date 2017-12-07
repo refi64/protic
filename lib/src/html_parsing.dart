@@ -5,14 +5,17 @@ import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:source_span/source_span.dart' show SourceFile;
 
-bool _isSingleLinePlus(Token token) =>
-  token.name == '+' && token.data != null &&
-  !((token.data.containsKey('do') && !token.data.containsKey('orelse')) ||
-    token.data.containsKey('macro'));
+bool _isSingleLinePlus(Token token, Set<String> slotMacros) =>
+  (token.name == '+' && token.data != null &&
+   !((token.data.containsKey('do') && !token.data.containsKey('orelse')) ||
+     token.data.containsKey('macro'))) ||
+  (token.name == '+@' && (token.data?.isNotEmpty ?? false) &&
+   !slotMacros.contains(token.data.keys.first));
 
 class CustomHtmlTokenizer extends HtmlTokenizer {
+  Set<String> slotMacros;
   CustomHtmlTokenizer(String text, {bool generateSpans, bool attributeSpans: false,
-                                    String sourceUrl}):
+                      String sourceUrl, this.slotMacros}):
     super(text, generateSpans: generateSpans, attributeSpans: attributeSpans,
                 sourceUrl: sourceUrl);
 
@@ -20,8 +23,11 @@ class CustomHtmlTokenizer extends HtmlTokenizer {
     super.emitCurrentToken();
 
     var token = tokenQueue.last;
-    if (token is StartTagToken && _isSingleLinePlus(token)) {
+    if (token is StartTagToken && _isSingleLinePlus(token, slotMacros)) {
       token.selfClosing = true;
+    } else if (token is StartTagToken && token.name == '+' && token.data != null &&
+               token.data.containsKey('macro') && token.data.containsKey('slot')) {
+      slotMacros.add(token.data['macro']);
     }
   }
 
@@ -51,11 +57,13 @@ class CustomHtmlTokenizer extends HtmlTokenizer {
 }
 
 class CustomTreeBuilder extends TreeBuilder {
-  CustomTreeBuilder(bool namespaceHTMLElements): super(namespaceHTMLElements);
+  Set<String> slotMacros;
+  CustomTreeBuilder(bool namespaceHTMLElements, {this.slotMacros}):
+                    super(namespaceHTMLElements);
 
   Element insertElement(StartTagToken token) {
     var result = super.insertElement(token);
-    if (_isSingleLinePlus(token)) {
+    if (_isSingleLinePlus(token, slotMacros)) {
       openElements.removeLast();
     }
     return result;
@@ -76,7 +84,8 @@ void initAttributeSpans(Node n) {
   // Based on Node._ensureAttributeSpans.
   var tokenizer = new CustomHtmlTokenizer(sourceSpan.text,
                                           generateSpans: true,
-                                          attributeSpans: true);
+                                          attributeSpans: true,
+                                          slotMacros: new Set<String>());
 
   tokenizer.moveNext();
   var token = tokenizer.current as StartTagToken;
@@ -98,9 +107,10 @@ void initAttributeSpans(Node n) {
 }
 
 Document parse(String text, {url}) {
-  var tokenizer = new CustomHtmlTokenizer(text, generateSpans: true,
-                                          sourceUrl: url);
-  var tree = new CustomTreeBuilder(true);
+  var slotMacros = new Set<String>();
+  var tokenizer = new CustomHtmlTokenizer(text, generateSpans: true, sourceUrl: url,
+                                          slotMacros: slotMacros);
+  var tree = new CustomTreeBuilder(true, slotMacros: slotMacros);
 
   var parser = new HtmlParser(tokenizer, tree: tree);
   return parser.parse();

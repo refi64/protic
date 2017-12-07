@@ -19,17 +19,18 @@ Zero-effort, compile-time HTML conditionals, includes, macros, and more.
 <+ if="$config == dev" include="dev.html">
 <+ else include="prod.html">
 
-<!-- Macros -->
+<!-- Variables -->
 <+ set var="value">
 
-<+ macro="expand">
+<!-- Macros -->
+<+ macro="expand" slot>
   <p>Your name is: <+ value="$@myname"></p>
-  <+ if="$@is-upper">
+  <+ if="$@?is-upper">
     <p>Is uppercase!</p>
   </+>
 
   <!-- Debug printing -->
-  <+ print="is-upper: $@is-upper myname: $@myname">
+  <+ print="is-upper: ($@?is-upper and true or false) myname: $@myname">
   <+ slot>
 </+>
 
