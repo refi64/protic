@@ -41,7 +41,7 @@ class _CompileTest extends Matcher {
     matchState['output'] = result.code;
     matchState['errors'] = actualErrors;
 
-    if (output != null && result != output) {
+    if (output != null && result.code != output) {
       return false;
     }
     if (errors != null && !const ListEquality().equals(actualErrors, errors)) {
@@ -59,7 +59,7 @@ class _CompileTest extends Matcher {
                     errors: matchState['errors']);
 }
 
-class MockFileProvider implements FileProvider {
+class MockFileProvider extends FileProvider {
   Map<String, String> files;
   MockFileProvider(this.files);
   String read(String file) => files[file];

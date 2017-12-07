@@ -6,7 +6,7 @@ import 'package:js/js_util.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../api.dart';
-import '../../ph.dart';
+import '../driver.dart';
 
 @JS()
 class Exports {
@@ -18,6 +18,12 @@ external Exports get exports;
 
 @JS('Object.keys')
 external List<String> objectKeys(dynamic obj);
+
+@JS('require.main.exports')
+external dynamic get requireMainExports;
+
+@JS('process.argv')
+external List<String> get processArgv;
 
 @JS()
 @anonymous
@@ -72,7 +78,7 @@ class JsCompileArgs {
   external Function get fileProvider;
 }
 
-class JsFileProviderWrapper implements FileProvider {
+class JsFileProviderWrapper extends FileProvider {
   Function reader;
   JsFileProviderWrapper(this.reader);
   String read(String path) => reader(path);
@@ -119,4 +125,13 @@ JsCompileResult jsCompile(String text, [JsCompileArgs args]) {
 
 void main() {
   exports.compile = allowInterop(jsCompile);
+
+  bool isMain = false;
+  try {
+    isMain = requireMainExports == exports;
+  } catch (ex) {}
+
+  if (isMain) {
+    run(processArgv.sublist(2));
+  }
 }

@@ -1,6 +1,7 @@
 name: ph
 description: ph
 dependencies:
+  args: any
   collection: any
   html: any
   petitparser: any

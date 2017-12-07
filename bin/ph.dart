@@ -1,9 +1,3 @@
-import 'package:ph/ph.dart';
+import 'package:ph/src/driver.dart';
 
-void main(List<String> args) {
-  var result = compile(args[0], vars: {'var': 'test'});
-  print(result.code);
-  for (var error in result.errors) {
-    print(error);
-  }
-}
+void main(List<String> args) => run(args);

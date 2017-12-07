@@ -7,6 +7,8 @@ export 'src/platform.dart';
 
 abstract class FileProvider {
   String read(String path);
+  String readStdin() => '';
+  bool write(String path, String data) => true;
 }
 
 class CompileError {
