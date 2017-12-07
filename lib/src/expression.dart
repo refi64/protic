@@ -170,7 +170,7 @@ class ExprGrammarDefinition extends GrammarDefinition {
   mkchar(delim) => ((char('\\') & any()).pick(1) | string(delim).neg());
 
   bareword() => ref(token, ref(relOp).not() & noneOf('\$"\'+!=()') &
-                           whitespace().neg().star());
+                           (whitespace() | char(')')).neg().star());
 
   parenExpr() => (char('(') & ref(expr) & char(')')).pick(1);
 }

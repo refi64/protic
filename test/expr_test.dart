@@ -16,6 +16,7 @@ void main() {
   test('barewords are parsed correctly', () {
     expect('word', parsesTo(new Text('word')));
     expect('this%is_a@!cr@zY.W0rD', parsesTo(new Text('this%is_a@!cr@zY.W0rD')));
+    expect('(a)', parsesTo(new Text('a')));
   });
 
   test('strings are parsed correctly', () {
