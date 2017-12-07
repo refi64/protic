@@ -3,9 +3,9 @@ import 'package:html/dom.dart';
 import 'package:source_maps/refactor.dart';
 import 'package:source_span/source_span.dart';
 
-import 'html_parsing.dart' as html;
+import 'api.dart' hide compile;
 import 'expression.dart';
-import '../api.dart' hide compile;
+import 'html_parsing.dart' as html;
 
 class Maybe<T> {}
 class Just<T> extends Maybe<T> {
@@ -54,12 +54,12 @@ class PhWalker extends TreeVisitor {
     errors.add(new CompileError(at, message));
   }
 
-  void edit1(SourceSpan span, String contents) {
+  void edit(SourceSpan span, String contents) {
     rewriter.edit(span.start.offset, span.end.offset, contents);
   }
 
   void delete(SourceSpan span) {
-    edit1(span, '');
+    edit(span, '');
   }
 
   void deleteNode(Node n, {bool contents: false}) {
@@ -102,7 +102,7 @@ class PhWalker extends TreeVisitor {
       var value = attr.substring(2);
 
       if (attr[1] == '#') {
-        edit1(span, 'id="$value"');
+        edit(span, 'id="$value"');
       } else if (attr[1] == '.') {
         classes.add(value);
         if (classSpan == null) {
@@ -115,7 +115,7 @@ class PhWalker extends TreeVisitor {
 
     if (classes.isNotEmpty) {
       assert(classSpan != null);
-      edit1(classSpan, 'class="${classes.join(' ')}"');
+      edit(classSpan, 'class="${classes.join(' ')}"');
     }
   }
 
@@ -146,7 +146,8 @@ class PhWalker extends TreeVisitor {
     var values = attributes.values.toList();
     var index = keys.indexOf(key);
 
-    return new Map.fromIterables(keys.sublist(index + 1), values.sublist(index + 1));
+    return new Map.fromIterables(keys.sublist(index + 1).map((x) => x as String),
+                                 values.sublist(index + 1).map((x) => x as String));
   }
 
   void compilePlus(Element el) {
@@ -170,7 +171,7 @@ class PhWalker extends TreeVisitor {
       case 'value':
         var result = runExpression(valueSpan, value);
         if (result is Just<String>) {
-          edit1(el.sourceSpan, result.value);
+          edit(el.sourceSpan, result.value);
         }
         invalidated = deleted = true;
         break;
@@ -210,7 +211,7 @@ class PhWalker extends TreeVisitor {
         var result = compile(contents, vars: new Map.from(vars)..addAll(extraVars),
                              url: value, fileProvider: fileProvider);
 
-        edit1(el.sourceSpan, result.code);
+        edit(el.sourceSpan, result.code);
         moves.add(new MovedSpan(original: includedFile.span(0, includedFile.length),
                                 target: el.sourceSpan));
         errors..addAll(result.errors);
@@ -307,7 +308,7 @@ class PhWalker extends TreeVisitor {
           error(el.sourceSpan, 'slot cannot be used outside a macro');
           continue;
         }
-        edit1(el.sourceSpan, slot);
+        edit(el.sourceSpan, slot);
         invalidated = deleted = true;
         break;
       default:
@@ -361,7 +362,7 @@ class PhWalker extends TreeVisitor {
       errors.add(new CompileError(el.sourceSpan, error.message));
     }
 
-    edit1(getFullElementSpan(el), result.code);
+    edit(getFullElementSpan(el), result.code);
 
     scopes = originalScopes;
   }

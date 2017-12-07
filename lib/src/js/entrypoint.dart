@@ -5,7 +5,7 @@ import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 import 'package:source_span/source_span.dart';
 
-import '../../api.dart';
+import '../api.dart';
 import '../driver.dart';
 
 @JS()

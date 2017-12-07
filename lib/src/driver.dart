@@ -1,5 +1,6 @@
 import 'package:args/args.dart';
-import '../api.dart';
+
+import 'api.dart';
 import 'platform.dart';
 
 void usage() {

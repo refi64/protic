@@ -1,9 +1,9 @@
 import 'package:source_span/source_span.dart';
 
-import 'src/compiler.dart' as compiler;
-import 'src/platform.dart';
+import 'compiler.dart' as compiler;
+import 'platform.dart';
 
-export 'src/platform.dart';
+export 'platform.dart';
 
 abstract class FileProvider {
   String read(String path);

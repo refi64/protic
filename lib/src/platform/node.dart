@@ -1,7 +1,7 @@
 import '../api.dart';
-import 'js/node_io.dart';
+import '../js/node_io.dart';
 
-export 'js/node_io.dart' show exit;
+export '../js/node_io.dart' show exit;
 
 class FileSystemProvider implements FileProvider {
   NodeFsModule _fs;

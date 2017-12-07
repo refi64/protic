@@ -5,7 +5,7 @@ import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:source_span/source_span.dart' show SourceFile;
 
-bool _isSingleLinePlus(Token token, Set<String> slotMacros) =>
+bool _isSingleLinePlus(StartTagToken token, Set<String> slotMacros) =>
   (token.name == '+' && token.data != null &&
    !((token.data.containsKey('do') && !token.data.containsKey('orelse')) ||
      token.data.containsKey('macro'))) ||
