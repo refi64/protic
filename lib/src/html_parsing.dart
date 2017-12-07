@@ -5,11 +5,24 @@ import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:source_span/source_span.dart' show SourceFile;
 
+bool _isSingleLinePlus(Token token) =>
+  token.name == '+' && token.data != null &&
+  !(token.data.containsKey('do') && !token.data.containsKey('orelse'));
+
 class CustomHtmlTokenizer extends HtmlTokenizer {
   CustomHtmlTokenizer(String text, {bool generateSpans, bool attributeSpans: false,
                                     String sourceUrl}):
     super(text, generateSpans: generateSpans, attributeSpans: attributeSpans,
                 sourceUrl: sourceUrl);
+
+  void emitCurrentToken() {
+    super.emitCurrentToken();
+
+    var token = tokenQueue.last;
+    if (token is StartTagToken && _isSingleLinePlus(token)) {
+      token.selfClosing = true;
+    }
+  }
 
   bool tagOpenState() {
     var data = stream.char();
@@ -41,8 +54,7 @@ class CustomTreeBuilder extends TreeBuilder {
 
   Element insertElement(StartTagToken token) {
     var result = super.insertElement(token);
-    if (token.name == '+' && token.data != null &&
-        !(token.data.containsKey('do') && !token.data.containsKey('orelse'))) {
+    if (_isSingleLinePlus(token)) {
       openElements.removeLast();
     }
     return result;

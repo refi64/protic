@@ -221,18 +221,30 @@ class PhWalker extends TreeVisitor {
           }
         }
 
+        var elseNodes = <Node>[];
+
         if (orelseIndexes.isNotEmpty) {
           var childrenCopy = new List.from(el.nodes);
           // Shorten the children to just until the first orelse.
-          el.nodes.removeRange(orelseIndexes[0] - 1, el.nodes.length);
+          el.nodes.removeRange(orelseIndexes[0], el.nodes.length);
 
           for (var i = 0; i < orelseIndexes.length; i++) {
+            var isLast = i + 1 == orelseIndexes.length;
+
             var orelseIndex = orelseIndexes[i];
-            var lastChildIndex = i + 1 == orelseIndexes.length ? childrenCopy.length :
-                                 orelseIndexes[i + 1];
+            var lastChildIndex = isLast ? childrenCopy.length : orelseIndexes[i + 1];
+            var lastChild = childrenCopy[lastChildIndex - 1];
+
             childrenCopy[orelseIndex].nodes.addAll(childrenCopy.sublist(
               orelseIndex + 1, lastChildIndex));
-            el.nodes.add(childrenCopy[orelseIndex]);
+
+            var elseEndSpan =
+              (lastChild is Element ? lastChild.endSourceSpan : null) ??
+              lastChild.sourceSpan;
+            childrenCopy[orelseIndex].endSourceSpan = elseEndSpan.file.span(
+              elseEndSpan.end.offset, elseEndSpan.end.offset);
+
+            elseNodes.add(childrenCopy[orelseIndex]);
           }
         }
 
@@ -240,11 +252,23 @@ class PhWalker extends TreeVisitor {
         if (result is Just<String>) {
           lastIfStatus = isTruthy(result.value);
           if (lastIfStatus) {
+            for (var node in elseNodes) {
+              deleteNode(node, contents: true);
+            }
             break;
           }
         }
-        deleteNode(el, contents: true);
+
+        for (var node in elseNodes) {
+          visit(node);
+        }
+
+        for (var child in el.nodes) {
+          deleteNode(child, contents: true);
+        }
+        deleteNode(el);
         return;
+      case 'orelse':
       case 'else':
         if (lastIfStatus == false) {
           break;
