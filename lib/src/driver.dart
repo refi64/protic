@@ -50,7 +50,7 @@ void run(List<String> argv) {
   }
 
   if (input == null) {
-    print('failed to read input file $input');
+    print('failed to read input file $inputFile');
     exit(1);
   }
 
