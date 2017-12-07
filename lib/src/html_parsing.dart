@@ -41,7 +41,8 @@ class CustomTreeBuilder extends TreeBuilder {
 
   Element insertElement(StartTagToken token) {
     var result = super.insertElement(token);
-    if (token.name == '+' && !token.data?.containsKey('do') ?? false) {
+    if (token.name == '+' && token.data != null &&
+        !(token.data.containsKey('do') && !token.data.containsKey('orelse'))) {
       openElements.removeLast();
     }
     return result;

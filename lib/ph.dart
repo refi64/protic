@@ -211,6 +211,31 @@ class PhWalker extends TreeVisitor {
         invalidated = deleted = true;
         break;
       case 'if':
+        var orelseIndexes = <int>[];
+
+        for (var childIndex = 0; childIndex < el.nodes.length; childIndex++) {
+          var child = el.nodes[childIndex];
+          if (child is Element && child.localName == '+' &&
+              child.attributes.containsKey('orelse')) {
+            orelseIndexes.add(childIndex);
+          }
+        }
+
+        if (orelseIndexes.isNotEmpty) {
+          var childrenCopy = new List.from(el.nodes);
+          // Shorten the children to just until the first orelse.
+          el.nodes.removeRange(orelseIndexes[0] - 1, el.nodes.length);
+
+          for (var i = 0; i < orelseIndexes.length; i++) {
+            var orelseIndex = orelseIndexes[i];
+            var lastChildIndex = i + 1 == orelseIndexes.length ? childrenCopy.length :
+                                 orelseIndexes[i + 1];
+            childrenCopy[orelseIndex].nodes.addAll(childrenCopy.sublist(
+              orelseIndex + 1, lastChildIndex));
+            el.nodes.add(childrenCopy[orelseIndex]);
+          }
+        }
+
         var result = runExpression(valueSpan, value);
         if (result is Just<String>) {
           lastIfStatus = isTruthy(result.value);

@@ -10,7 +10,7 @@ Zero-effort, compile-time HTML conditionals, includes, macros, and more.
 <!-- If statements -->
 <+ if="$config == dev" do>
   <p>Development build!</p>
-<+ else>
+<+ orelse>
   <p>Production build!</p>
 </+>
 
