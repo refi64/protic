@@ -10,4 +10,6 @@ dependency_overrides:
   html:
     path: /home/ryan/html
 dev_dependencies:
+  js: any
+  node_preamble: any
   test: any

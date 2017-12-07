@@ -7,8 +7,6 @@ import 'html_parsing.dart' as html;
 import 'expression.dart';
 import '../api.dart';
 
-import 'dart:io';
-
 class Maybe<T> {}
 class Just<T> extends Maybe<T> {
   T value;
@@ -19,16 +17,6 @@ class Nothing<T> extends Maybe<T> {}
 class MovedSpan {
   SourceSpan original, target;
   MovedSpan({this.original, this.target});
-}
-
-class FileSystemProvider implements FileProvider {
-  String read(String path) {
-    try {
-      return new File(path).readAsStringSync();
-    } on FileSystemException {
-      return null;
-    }
-  }
 }
 
 class Macro {
@@ -48,7 +36,6 @@ class PhWalker extends TreeVisitor {
                            this.slot}) {
     this.vars ??= {};
     this.macroVars ??= {};
-    this.fileProvider ??= new FileSystemProvider();
     this.scopes.add(vars);
     this.scopes.add(<String, String>{});
   }
@@ -203,6 +190,12 @@ class PhWalker extends TreeVisitor {
         var path = (result as Just<String>).value;
         if (path == null) {
           error(valueSpan, 'expression resulted in a null value');
+          continue;
+        }
+
+        if (fileProvider == null) {
+          error(valueSpan, 'ph does not have a file provider; includes are disabled');
+          continue;
         }
 
         var contents = fileProvider.read(path);
