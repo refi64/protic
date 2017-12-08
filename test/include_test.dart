@@ -30,4 +30,15 @@ void main() {
     expect('<+ include="file.html" var="1">',
            compilesTo('1', fileProvider: fileProvider));
   });
+
+  test('required (but not included) macros are available in the including file', () {
+    var fileProvider = new MockFileProvider({
+      'file.html': '<+ macro="expand">expanded!</+>',
+    });
+
+    expect('<+ require="file.html"><+@ expand>',
+           compilesTo('expanded!', fileProvider: fileProvider));
+    expect('<+ include="file.html"><+@ expand>',
+           compilesWithErrors(['undefined macro expand'], fileProvider: fileProvider));
+  });
 }

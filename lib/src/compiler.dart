@@ -31,11 +31,14 @@ class Macro {
 class PhWalker extends TreeVisitor {
   TextEditTransaction rewriter;
   Map<String, String> vars, macroVars;
+  Map<String, Macro> macros;
   FileProvider fileProvider;
   String slot;
-  PhWalker(this.rewriter, {this.vars, this.macroVars, this.fileProvider, this.slot}) {
-    this.vars ??= {};
-    this.macroVars ??= {};
+  PhWalker(this.rewriter, {this.vars, this.macroVars, this.macros, this.fileProvider,
+           this.slot}) {
+    this.vars ??= <String, String>{};
+    this.macroVars ??= <String, String>{};
+    this.macros ??= <String, Macro>{};
     this.scopes.add(vars);
     this.scopes.add(<String, String>{});
   }
@@ -43,7 +46,6 @@ class PhWalker extends TreeVisitor {
   var errors = <CompileError>[];
   var moves = <MovedSpan>[];
   var scopes = <Map<String, String>>[];
-  var macros = <String, Macro>{};
   bool lastIfStatus = null;
 
   SourceSpan getInnerHtmlSpan(Element el) =>
@@ -205,6 +207,7 @@ class PhWalker extends TreeVisitor {
         }
         break;
       case 'include':
+      case 'require':
         var maybePath = runExpression(valueSpan, value);
         if (maybePath is Nothing) {
           continue;
@@ -229,10 +232,16 @@ class PhWalker extends TreeVisitor {
 
         var includedFile = new SourceFile.fromString(contents, url: value);
 
-        var extraVars = getAttributesAfter(el.attributes, 'include');
+        var extraVars = getAttributesAfter(el.attributes, attr);
 
+        var requiredMacros = <String, Macro>{};
         var result = compile(contents, vars: new Map.from(vars)..addAll(extraVars),
-                             url: value, fileProvider: fileProvider);
+                             macros: requiredMacros, url: value,
+                             fileProvider: fileProvider);
+
+        if (attr == 'require') {
+          macros.addAll(requiredMacros);
+        }
 
         edit(el.sourceSpan, result.code);
         moves.add(new MovedSpan(original: includedFile.span(0, includedFile.length),
@@ -479,13 +488,13 @@ class PhWalker extends TreeVisitor {
 }
 
 CompileResult compile(String text, {Map<String, String> vars,
-                      Map<String, String> macroVars, url, FileProvider fileProvider,
-                      String slot}) {
+                      Map<String, String> macroVars, Map<String, Macro> macros,
+                      url, FileProvider fileProvider, String slot}) {
   var source = new SourceFile.fromString(text, url: url);
   var rewriter = new TextEditTransaction(text, source);
 
   var dom = html.parse(text, url: url);
-  var walker = new PhWalker(rewriter, vars: vars, macroVars: macroVars,
+  var walker = new PhWalker(rewriter, vars: vars, macroVars: macroVars, macros: macros,
                             fileProvider: fileProvider, slot: slot);
   walker.visit(dom);
   var printer = rewriter.commit();
