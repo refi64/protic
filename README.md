@@ -1,6 +1,10 @@
 # pH
 
-Zero-effort, compile-time HTML conditionals, includes, macros, and more.
+Zero-effort HTML preprocessing/templating, with conditionals, includes, macros, and more.
+
+## Learning More
+
+Check out [the docs](https://refi64.com/pH).
 
 ## Example
 
