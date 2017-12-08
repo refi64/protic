@@ -13,6 +13,12 @@ void main() {
   });
 
   test('invalid attributes are handled', () {
-    expect('<div ++>', compilesWithErrors(['invalid attribute']));
+    expect('<div +>', compilesWithErrors(['invalid attribute']));
+    expect('<div +#>', compilesWithErrors(['invalid attribute']));
+  });
+
+  test('+attr works', () {
+    expect(r'<div +style="width: $width">',
+           compilesTo('<div style="width: 10px">', vars: {'width': '10px'}));
   });
 }

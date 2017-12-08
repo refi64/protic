@@ -90,25 +90,45 @@ class PhWalker extends TreeVisitor {
       }
       var span = el.attributeSpans[attr];
 
-      if (attr.length < 3 || !'#.'.contains(attr[1])) {
+      if (attr.length < 2) {
         error(span, 'invalid attribute');
         continue;
       }
 
-      if (el.attributes[attr].isNotEmpty) {
-        error(span, '${attr} should not have a value');
-      }
+      if ('#.'.contains(attr[1])) {
+        if (attr.length < 3) {
+          error(span, 'invalid attribute');
+          continue;
+        }
 
-      var value = attr.substring(2);
+        if (el.attributes[attr].isNotEmpty) {
+          error(span, '$attr should not have a value');
+        }
 
-      if (attr[1] == '#') {
-        edit(span, 'id="$value"');
-      } else if (attr[1] == '.') {
-        classes.add(value);
-        if (classSpan == null) {
-          classSpan = span;
-        } else {
-          delete(span);
+        var value = attr.substring(2);
+
+        if (attr[1] == '#') {
+          edit(span, 'id="$value"');
+        } else if (attr[1] == '.') {
+          classes.add(value);
+          if (classSpan == null) {
+            classSpan = span;
+          } else {
+            delete(span);
+          }
+        }
+      } else {
+        if (el.attributes[attr].isEmpty) {
+          error(span, '$attr should have a value');
+          continue;
+        }
+
+        var actualAttr = attr.substring(1);
+        var valueSpan = el.attributeValueSpans[attr];
+        var result = runExpression(valueSpan, el.attributes[attr]);
+
+        if (result is Just<String>) {
+          edit(span, '$actualAttr="${result.value}"');
         }
       }
     }

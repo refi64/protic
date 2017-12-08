@@ -22,6 +22,10 @@ Zero-effort, compile-time HTML conditionals, includes, macros, and more.
 <!-- Variables -->
 <+ set var="value">
 
+<!-- Expressions inside attributes -->
+<+ set width="20px">
+<div +style="width: $width"></div>
+
 <!-- Macros -->
 <+ macro="expand" slot>
   <p>Your name is: <+ value="$@name"></p>
