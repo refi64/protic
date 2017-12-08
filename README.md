@@ -24,13 +24,13 @@ Zero-effort, compile-time HTML conditionals, includes, macros, and more.
 
 <!-- Macros -->
 <+ macro="expand" slot>
-  <p>Your name is: <+ value="$@myname"></p>
-  <+ if="$@?is-upper">
+  <p>Your name is: <+ value="$@name"></p>
+  <+ if="$@?is-upper" do>
     <p>Is uppercase!</p>
   </+>
 
   <!-- Debug printing -->
-  <+ print="is-upper: ($@?is-upper and true or false) myname: $@myname">
+  <+ print="is-upper: ($@?is-upper and true or false) myname: $@name">
   <+ slot>
 </+>
 

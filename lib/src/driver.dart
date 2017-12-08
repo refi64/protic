@@ -4,7 +4,8 @@ import 'api.dart';
 import 'platform.dart';
 
 void usage() {
-  print('usage: pH [-h] [-o|--output <output>] <input>');
+  print('usage: pH [-h] [-D<name>[=<value>]] [-o|--output <output>] '
+        '[-s|--source-map <source map output>] <input>');
 }
 
 void run(List<String> argv) {
@@ -12,6 +13,7 @@ void run(List<String> argv) {
     ..addFlag('help', abbr: 'h', help: 'show this screen')
     ..addOption('output', abbr: 'o', help: 'the output file',
                 defaultsTo: '-')
+    ..addOption('source-map', abbr: 's', help: 'output a source map to the given path')
     ..addOption('define', abbr: 'D', help: 'define a variable', allowMultiple: true);
 
   ArgResults args;
@@ -78,6 +80,13 @@ void run(List<String> argv) {
   } else {
     if (!fileProvider.write(outputFile, result.code)) {
       print('failed to write output file $outputFile');
+    }
+  }
+
+  var sourceMapFile = args['source-map'];
+  if (sourceMapFile != null) {
+    if (!fileProvider.write(sourceMapFile, result.sourceMap)) {
+      print('failed to write source map file $sourceMapFile');
     }
   }
 }

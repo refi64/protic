@@ -178,7 +178,7 @@ class PhWalker extends TreeVisitor {
       case 'print':
         var result = runExpression(valueSpan, value);
         if (result is Just<String>) {
-          print(result.value);
+          print(attrSpan.message('print: ${result.value}'));
         }
         break;
       case 'include':
