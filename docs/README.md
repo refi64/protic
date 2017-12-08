@@ -2,7 +2,7 @@
 
 Zero-effort HTML preprocessing/templating, with conditionals, includes, macros, and more.
 
-![GitHub link](https://github.com/kirbyfan64/pH).
+[Star it on GitHub!](https://github.com/kirbyfan64/pH)
 
 ```html
 <div +#myid +.mycls></div> <!-- Easy ids and classes -->
@@ -503,4 +503,145 @@ identical to *include*, except that it also includes macros:
     <p>My app goes here!</p>
   </+@>
 </body>
+```
+
+## Using the API
+
+### From Dart
+
+Add pH to your pubspec:
+
+```yaml
+dependencies:
+  pH: ^0.1.0
+```
+
+Then use it:
+
+```dart
+import 'package:pH/pH.dart';
+
+void main() {
+  // The API all stems from pH.compile.
+  CompileResult result;
+  result = pH.compile('text');
+  result = pH.compile('text', vars: {'my-variable': '123'});
+  result = pH.compile('text', url: 'my-file.html');
+
+  // CompileResult has three attributes of interest: code, sourceMap, and errors.
+  String code = result.code;
+  print('pH outputted the following code: $code');
+
+  String sourceMap = result.sourceMap;
+  print('It also outputted the following source map: $sourceMap');
+
+  List<CompileError> errors = result.errors;
+
+  // Each CompileError contains a SourceSpan (from the source_span package) and a message:
+  for (var error in errors) {
+    print('Source span: ${error.at}');
+    print('Error message: ${error.message}');
+    // You can also view a nicely formatted message via CompileError.toString:
+    print('Formatted error:');
+    print(error.toString());
+  }
+}
+```
+
+When running on the Dart VM, file system access for includes and requires is automatic.
+Otherwise, you'll need to provide a *FileProvider* to enable includes and requires:
+
+```dart
+import 'package:pH/pH.dart';
+
+class MyFileProvider extends FileProvider {
+  String read(String path) {
+    // read should return the contents of the given path, or null if an error occurs
+    if (path == 'my-file.html') {
+      return '<div>Hello!</div>';
+    } else {
+      return null;
+    }
+  }
+}
+
+void main() {
+  var result = pH.compile('text', fileProvider: new MyFileProvider());
+}
+```
+
+### From JavaScript
+
+Add the dependency:
+
+```
+$ npm install --save-dev pH
+$ yarn add pH
+```
+
+Usage:
+
+```javascript
+var pH = require('pH')
+
+// The API all stems from pH.compile.
+var result
+result = pH.compile('text')
+result = pH.compile('text', { vars: { myvariable: 123 } })
+result = pH.compile('text', { url: 'my-file.html' })
+
+// The result has three attributes of interest: code, sourceMap, and errors.
+console.log(`pH outputted the following code string: ${result.code}`)
+
+console.log(`It also outputted the following source map string: ${result.sourceMap}`)
+
+// errors is an array of objects containing error info:
+var errors = result.errors
+
+for (var error of errors) {
+  // Each error object looks like this:
+
+  var exampleError = {
+    // 'at' contains a span of text where the error occurred.
+    at: {
+      // The start of the error location
+      start: {
+        // Line #
+        line: 1,
+        // Column #
+        column: 1,
+        // Offset into the file
+        offset: 2,
+        // The url (same as passed above to pH.compile)
+        url: 'my-file.html',
+      },
+      // Same format as start
+      end: {
+        // ...
+      },
+      // The text
+      text: '<+ some-error-here>'
+    },
+    // The error message
+    message: 'an error has occurred',
+    // A nicely formatted message, containing carets and such to point to the location
+    formattedMessage: 'line 1, column 1 of my-file.html: some error\n<+ some-error-here>\n^^^^^^'
+  }
+}
+```
+
+When running on the Node VM, file system access for includes and requires is automatic.
+Otherwise, you'll need to provide a *fileProvider* to enable includes and requires:
+
+```javascript
+function fileProvider(path) {
+  // the fileProvider should return the contents of the given path, or null if an error occurs
+  if (path == 'my-file.html') {
+    return '<div>Hello!</div>'
+  } else {
+    return null
+  }
+}
+
+var result = pH.compile('text', { fileProvider })
 ```
