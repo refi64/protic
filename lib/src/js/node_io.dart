@@ -1,5 +1,5 @@
 @JS()
-library ph.src.js.node_fs;
+library pH.src.js.node_fs;
 
 import 'package:js/js.dart';
 

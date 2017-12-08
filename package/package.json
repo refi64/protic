@@ -1,8 +1,8 @@
 {
-  "name": "ph",
+  "name": "pH",
   "version": "0.1.0",
-  "main": "build/ph.js",
-  "repository": "https://github.com/kirbyfan64/ph",
+  "main": "build/pH.js",
+  "repository": "https://github.com/kirbyfan64/pH",
   "author": "Ryan Gonzalez",
-  "license": "BSD 2-clause"
+  "license": "BSD-2-Clause"
 }

@@ -1,4 +1,4 @@
-# ph
+# pH
 
 Zero-effort, compile-time HTML conditionals, includes, macros, and more.
 

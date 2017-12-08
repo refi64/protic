@@ -1,6 +1,6 @@
 import 'package:collection/collection.dart';
-import 'package:ph/ph.dart';
-import 'package:ph/src/expression.dart';
+import 'package:pH/pH.dart';
+import 'package:pH/src/expression.dart';
 import 'package:test/test.dart';
 
 Description _describeValues(Description description, {String output,

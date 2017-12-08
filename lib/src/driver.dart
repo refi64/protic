@@ -4,7 +4,7 @@ import 'api.dart';
 import 'platform.dart';
 
 void usage() {
-  print('usage: ph [-h] [-o|--output <output>] <input>');
+  print('usage: pH [-h] [-o|--output <output>] <input>');
 }
 
 void run(List<String> argv) {

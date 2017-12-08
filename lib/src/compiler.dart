@@ -194,7 +194,7 @@ class PhWalker extends TreeVisitor {
         }
 
         if (fileProvider == null) {
-          error(valueSpan, 'ph does not have a file provider; includes are disabled');
+          error(valueSpan, 'pH does not have a file provider; includes are disabled');
           continue;
         }
 

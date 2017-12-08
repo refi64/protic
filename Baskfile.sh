@@ -17,15 +17,15 @@ js() {
   fi
 
   mkdir -p package/build
-  bask_run dart2js --trust-type-annotations $dart2js_flags -o package/build/ph.js \
+  bask_run dart2js --trust-type-annotations $dart2js_flags -o package/build/pH.js \
             lib/src/js/entrypoint.dart
-  mv package/build/ph.js package/build/ph.0.js
+  mv package/build/pH.js package/build/pH.0.js
   cat \
     <(echo 'if (typeof self === "undefined") {') \
     "$preamble_js" \
     <(echo '}') \
-    package/build/ph.0.js > package/build/ph.js
-  rm package/build/ph.0.js
+    package/build/pH.0.js > package/build/pH.js
+  rm package/build/pH.0.js
 }
 
 task_js() {

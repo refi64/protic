@@ -1,5 +1,5 @@
-name: ph
-description: ph
+name: pH
+description: pH
 dependencies:
   args: any
   collection: any

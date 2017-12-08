@@ -1,5 +1,5 @@
 @JS()
-library ph.src.js.entrypoint;
+library pH.src.js.entrypoint;
 
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
