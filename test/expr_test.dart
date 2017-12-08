@@ -5,7 +5,7 @@ import 'utils.dart';
 void main() {
   test('variables are parsed correctly', () {
     expect(r'$a', parsesTo(new Var('a')));
-    expect(r'$myLong_Variable', parsesTo(new Var('myLong_Variable')));
+    expect(r'$myLong_Variabl-e', parsesTo(new Var('myLong_Variabl-e')));
     expect(r'$?exists', parsesTo(new Var('exists', isOptional: true)));
     expect(r'$@myMacroVar', parsesTo(new Var('myMacroVar', isMacroVar: true)));
     expect(r'$@?myMacroVar', parsesTo(new Var('myMacroVar', isMacroVar: true,
@@ -48,6 +48,12 @@ void main() {
                                                      right: new Var('d'),
                                                      op: RelationOp.or),
                                  op: RelationOp.and)));
+    expect(r'a and b or c',
+           parsesTo(new Relation(left: new Relation(left: new Text('a'),
+                                                    right: new Text('b'),
+                                                    op: RelationOp.and),
+                                 right: new Text('c'),
+                                 op: RelationOp.or)));
   });
 
   test('negations are parsed correctly', () {

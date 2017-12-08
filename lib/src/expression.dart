@@ -143,7 +143,7 @@ class ExprGrammarDefinition extends GrammarDefinition {
 
   expr() => ref(relExpr);
 
-  relExpr() => ref(cmpExpr) & (ref(relOp) & ref(cmpExpr)).optional();
+  relExpr() => ref(cmpExpr) & (ref(relOp) & ref(cmpExpr)).star();
   relOp() => ref(token, string('and') | string('or'));
 
   cmpExpr() => ref(addExpr) & (ref(cmpOp) & ref(addExpr)).optional();
@@ -161,7 +161,7 @@ class ExprGrammarDefinition extends GrammarDefinition {
   variable() => (var_() | macroVar()).trim();
   var_() => char(r'$') & char('?').optional() & ref(id);
   macroVar() => string(r'$@') & char('?').optional() & ref(id);
-  id() => letter() & (word() | char('_')).star();
+  id() => letter() & (word() | anyOf('_-')).star();
 
   value() => ref(qstring) | ref(bareword);
 
@@ -192,9 +192,10 @@ class ExprParserDefinition extends ExprGrammarDefinition {
     '!=': ComparisonOp.ne,
   };
 
-  relExpr() => super.relExpr().map((p) => p[1] == null ? p[0] :
-                                            new Relation(left: p[0], right: p[1][1],
-                                                         op: p[1][0]));
+  relExpr() => super.relExpr().map((p) => p[1].fold(p[0],
+                                            (left, q) =>
+                                              new Relation(left: left, right: q[1],
+                                                           op: q[0])));
   relOp() => super.relOp().map((p) => relOpMap[p]);
 
   cmpExpr() => super.cmpExpr().map((p) => p[1] == null ? p[0] :
