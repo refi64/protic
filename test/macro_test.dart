@@ -24,4 +24,16 @@ void main() {
     expect('<+ macro="expand" slot></+><+@ expand>',
            compilesWithErrors(['macro requires a slot, but none was given']));
   });
+
+  test('required macros are available in the including file', () {
+    var fileProvider = new MockFileProvider({
+      'file.html': '<+ macro="expand">expanded!</+>'
+                   '<+ macro="expand-slot" slot><p>slot: <+ slot></p></+>',
+    });
+
+    expect('<+ require="file.html"><+@ expand>',
+           compilesTo('expanded!', fileProvider: fileProvider));
+    expect('<+ require="file.html"><+@ expand-slot>contents</+@>',
+           compilesTo('<p>slot: contents</p>', fileProvider: fileProvider));
+  });
 }

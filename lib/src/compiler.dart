@@ -503,7 +503,7 @@ CompileResult compile(String text, {Map<String, String> vars,
   var source = new SourceFile.fromString(text, url: url);
   var rewriter = new TextEditTransaction(text, source);
 
-  var dom = html.parse(text, url: url);
+  var dom = html.parse(text, url: url, fileProvider: fileProvider);
   var walker = new PhWalker(rewriter, vars: vars, macroVars: macroVars, macros: macros,
                             fileProvider: fileProvider, slot: slot);
   walker.visit(dom);

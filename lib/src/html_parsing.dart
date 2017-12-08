@@ -5,6 +5,8 @@ import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:source_span/source_span.dart' show SourceFile;
 
+import 'api.dart';
+
 bool _isSingleLinePlus(StartTagToken token, Set<String> slotMacros) =>
   (token.name == '+' && token.data != null &&
    !((token.data.containsKey('do') && !token.data.containsKey('orelse')) ||
@@ -13,9 +15,10 @@ bool _isSingleLinePlus(StartTagToken token, Set<String> slotMacros) =>
    !slotMacros.contains(token.data.keys.first));
 
 class CustomHtmlTokenizer extends HtmlTokenizer {
+  FileProvider fileProvider;
   Set<String> slotMacros;
   CustomHtmlTokenizer(String text, {bool generateSpans, bool attributeSpans: false,
-                      String sourceUrl, this.slotMacros}):
+                      String sourceUrl, this.fileProvider, this.slotMacros}):
     super(text, generateSpans: generateSpans, attributeSpans: attributeSpans,
                 sourceUrl: sourceUrl);
 
@@ -28,6 +31,21 @@ class CustomHtmlTokenizer extends HtmlTokenizer {
     } else if (token is StartTagToken && token.name == '+' && token.data != null &&
                token.data.containsKey('macro') && token.data.containsKey('slot')) {
       slotMacros.add(token.data['macro']);
+    }
+
+    if (token is StartTagToken && token.name == '+' &&
+        (token.data?.containsKey('require') ?? false)) {
+      if (fileProvider == null) {
+        return;
+      }
+
+      var contents = fileProvider.read(token.data['require']);
+      if (contents == null) {
+        return;
+      }
+
+      // Make sure slotMacros is filled with any required macros.
+      parse(contents, fileProvider: fileProvider, slotMacros: slotMacros);
     }
   }
 
@@ -106,9 +124,10 @@ void initAttributeSpans(Node n) {
   n.sourceSpan = sourceSpan;
 }
 
-Document parse(String text, {url}) {
-  var slotMacros = new Set<String>();
+Document parse(String text, {url, FileProvider fileProvider, Set<String> slotMacros}) {
+  slotMacros ??= new Set<String>();
   var tokenizer = new CustomHtmlTokenizer(text, generateSpans: true, sourceUrl: url,
+                                          fileProvider: fileProvider,
                                           slotMacros: slotMacros);
   var tree = new CustomTreeBuilder(true, slotMacros: slotMacros);
 
