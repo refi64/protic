@@ -26,6 +26,9 @@ Zero-effort, compile-time HTML conditionals, includes, macros, and more.
 <+ set width="20px">
 <div +style="width: $width"></div>
 
+<+ for var to="a b c">
+</+>
+
 <!-- Macros -->
 <+ macro="expand" slot>
   <p>Your name is: <+ value="$@name"></p>

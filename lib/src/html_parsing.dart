@@ -8,7 +8,7 @@ import 'package:source_span/source_span.dart' show SourceFile;
 bool _isSingleLinePlus(StartTagToken token, Set<String> slotMacros) =>
   (token.name == '+' && token.data != null &&
    !((token.data.containsKey('do') && !token.data.containsKey('orelse')) ||
-     token.data.containsKey('macro'))) ||
+     token.data.containsKey('macro') || token.data.containsKey('for'))) ||
   (token.name == '+@' && (token.data?.isNotEmpty ?? false) &&
    !slotMacros.contains(token.data.keys.first));
 

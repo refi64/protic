@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:html/dom_parsing.dart';
 import 'package:html/dom.dart';
 import 'package:source_maps/refactor.dart';
@@ -166,8 +168,9 @@ class PhWalker extends TreeVisitor {
     var values = attributes.values.toList();
     var index = keys.indexOf(key);
 
-    return new Map.fromIterables(keys.sublist(index + 1).map((x) => x as String),
-                                 values.sublist(index + 1).map((x) => x as String));
+    return new LinkedHashMap.fromIterables(
+      keys.sublist(index + 1).map((x) => x as String),
+      values.sublist(index + 1).map((x) => x as String));
   }
 
   void compilePlus(Element el) {
@@ -304,6 +307,81 @@ class PhWalker extends TreeVisitor {
         lastIfStatus = null;
         deleteNode(el, contents: true);
         return;
+      case 'for':
+        if (el.endSourceSpan == null) {
+          error(attrSpan, 'for statement must have a body');
+          return;
+        }
+
+        var attrs = getAttributesAfter(el.attributes, 'for');
+        if (attrs.length != 2) {
+          error(attrSpan, 'invalid for statement');
+          return;
+        }
+
+        if (attrs.values.first.isNotEmpty) {
+          error(el.attributeValueSpans[attrs.keys.first],
+                'for statement variable attribute must not have a value');
+        }
+
+        var target = attrs.keys.elementAt(0);
+        var exprKind = attrs.keys.elementAt(1);
+        var expr = attrs.values.elementAt(1);
+        var exprKindSpan = el.attributeSpans[exprKind];
+        var exprSpan = el.attributeValueSpans[exprKind];
+
+        if (expr.isEmpty) {
+          error(exprKindSpan, 'for statement expression must not be empty');
+          return;
+        }
+
+        if (exprKind != 'in' && exprKind != 'upto') {
+          error(exprKindSpan, 'for statement expression kind must be in or upto');
+          return;
+        }
+
+        var exprResult = runExpression(exprSpan, expr);
+        if (exprResult is Nothing) {
+          return;
+        }
+        var exprString = (exprResult as Just<String>).value;
+        Iterable<String> values;
+
+        if (exprKind == 'upto') {
+          var exprNum = int.parse(exprString, onError: (_) => null);
+          if (exprNum == null) {
+            error(exprSpan, 'expression is not a valid integer');
+            return;
+          }
+
+          values = new Iterable<String>.generate(exprNum, (i) => i.toString());
+        } else if (exprKind == 'in') {
+          values = exprString.split(' ');
+        }
+
+        var contentSpan = getInnerHtmlSpan(el);
+        var contents = contentSpan.text;
+
+        var htmlBuffer = new StringBuffer();
+
+        for (var value in values) {
+          var loopVars = new Map.from(vars);
+          loopVars[target] = value;
+          var result = compile(contents, vars: loopVars, macroVars: macroVars,
+                               url: rewriter.file.url, fileProvider: fileProvider);
+
+          for (var error in result.errors) {
+            var properSpan = rewriter.file.span(
+                contentSpan.start.offset + error.at.start.offset,
+                contentSpan.start.offset + error.at.end.offset);
+            errors.add(new CompileError(properSpan, error.message));
+          }
+
+          htmlBuffer.writeln(result.code);
+        }
+
+        edit(getFullElementSpan(el), htmlBuffer.toString());
+        return;
       case 'do':
         visitChildren(el);
         break;
@@ -375,8 +453,8 @@ class PhWalker extends TreeVisitor {
     var macroVars = getAttributesAfter(el.attributes, name);
 
     var result = compile(macro.contents, vars: vars, macroVars: macroVars,
-                           url: rewriter.file.url, fileProvider: fileProvider,
-                           slot: macro.slot ? getInnerHtmlSpan(el).text : '');
+                         url: rewriter.file.url, fileProvider: fileProvider,
+                         slot: macro.slot ? getInnerHtmlSpan(el).text : '');
 
     for (var error in result.errors) {
       errors.add(new CompileError(el.sourceSpan, error.message));
