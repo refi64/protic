@@ -4,6 +4,9 @@ library ph.src.js.node_fs;
 import 'package:js/js.dart';
 
 @JS()
+external dynamic eval(String s);
+
+@JS()
 external dynamic require(String module);
 
 @JS()
@@ -24,3 +27,5 @@ NodeFsModule requireFs() => require('fs') as NodeFsModule;
 
 @JS('process.exit')
 external void exit([int code]);
+
+bool isNode() => eval('typeof window === "undefined"');

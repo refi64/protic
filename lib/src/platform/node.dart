@@ -34,4 +34,4 @@ class FileSystemProvider implements FileProvider {
   }
 }
 
-FileProvider platformFileProvider() => new FileSystemProvider();
+FileProvider platformFileProvider() => isNode() ? new FileSystemProvider() : null;

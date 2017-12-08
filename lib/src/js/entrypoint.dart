@@ -15,6 +15,13 @@ class Exports {
 
 @JS()
 external Exports get exports;
+@JS()
+external set exports(Exports);
+
+@JS('pH')
+external Exports get globalpH;
+@JS('pH')
+external set globalpH(Exports);
 
 @JS('Object.keys')
 external List<String> objectKeys(dynamic obj);
@@ -124,7 +131,12 @@ JsCompileResult jsCompile(String text, [JsCompileArgs args]) {
 }
 
 void main() {
-  exports.compile = allowInterop(jsCompile);
+  if (exports == null) {
+    globalpH = new Exports();
+    globalpH.compile = allowInterop(jsCompile);
+  } else {
+    exports.compile = allowInterop(jsCompile);
+  }
 
   bool isMain = false;
   try {

@@ -1,3 +1,3 @@
 export 'platform/generic.dart'
   if (dart.library.io) 'platform/vm.dart'
-  if (node) 'platform/node.dart';
+  if (dart.library.js) 'platform/node.dart';
