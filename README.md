@@ -4,7 +4,8 @@ Zero-effort HTML preprocessing/templating, with conditionals, includes, macros, 
 
 ## Learning More
 
-Check out [the docs](https://refi64.com/pH).
+Check out [the docs](https://refi64.com/pH), and try out
+[the live demo](https://refi64.com/pH/demo.html).
 
 ## Example
 

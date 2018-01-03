@@ -2,7 +2,8 @@
 
 Zero-effort HTML preprocessing/templating, with conditionals, includes, macros, and more.
 
-[Star it on GitHub!](https://github.com/kirbyfan64/pH)
+- [Live demo.](https://refi64.com/pH/demo.html)
+- [Source code.](https://github.com/kirbyfan64/pH)
 
 ```html
 <div +#myid +.mycls></div> <!-- Easy ids and classes -->
