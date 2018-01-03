@@ -1,4 +1,4 @@
-pH/.packages
-pH/.pub/
-pH/pubspec.lock
+.packages
+.pub/
+pubspec.lock
 pH-js/build/
