@@ -20,7 +20,7 @@ class PhTransformer extends Transformer {
       }
     }
 
-    transform.addOutput(new Asset.fromString(primary.id, content));
+    transform.addOutput(new Asset.fromString(primary.id, result.code));
     return new Future.value();
   }
 }

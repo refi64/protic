@@ -136,9 +136,20 @@ $ pH -                          # process standard input and output to the scree
 $ pH -Dvar=value -              # same as above, but assign 'value' to the variable 'var'
 ```
 
-## Learning the pH language
+### Using the transformer
 
-This is a whirlwind tour of pH!
+If you're using Pub, you can use the `pH_transformer` package:
+
+```yaml
+dependencies:
+  # ...
+  pH_transformer: any
+transformers:
+  - pH_transformer
+  # ...
+```
+
+## Learning the pH language
 
 ### The magic `+`
 

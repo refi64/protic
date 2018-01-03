@@ -4,7 +4,7 @@ description: Zero-effort HTML preprocessing/templating, with conditionals, inclu
 author: Ryan Gonzalez <rymg19@gmail.com>
 homepage: https://github.com/kirbyfan64/pH
 dependencies:
-  args: ^1.2.0
+  args: ^0.13.0
   collection: ^1.14.3
   html: ^0.13.2
   petitparser: ^1.6.1
