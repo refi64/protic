@@ -194,7 +194,7 @@ class PhWalker extends TreeVisitor {
         var assignments = getAttributesAfter(el.attributes, 'set');
         for (var name in assignments.keys) {
           if (assignments[name].isEmpty) {
-            scope.last[name] = '';
+            scopes.last[name] = '';
           } else {
             var result = runExpression(el.attributeValueSpans[name], assignments[name]);
             if (result is Just<String>) {

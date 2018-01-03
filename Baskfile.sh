@@ -16,16 +16,16 @@ js() {
     dart2js_flags=
   fi
 
-  mkdir -p package/pH/build
-  bask_run dart2js --trust-type-annotations $dart2js_flags -o package/pH/build/pH.js \
-            lib/src/js/entrypoint.dart
-  mv package/pH/build/pH.js package/pH/build/pH.0.js
+  mkdir -p pH-js/build
+  bask_run dart2js --trust-type-annotations $dart2js_flags -o pH-js/build/pH.js \
+            pH/lib/src/js/entrypoint.dart
+  mv pH-js/build/pH.js pH-js/build/pH.0.js
   cat \
     <(echo 'if (typeof self === "undefined") {') \
     "$preamble_js" \
     <(echo '}') \
-    package/pH/build/pH.0.js > package/pH/build/pH.js
-  rm package/pH/build/pH.0.js
+    pH-js/build/pH.0.js > pH-js/build/pH.js
+  rm pH-js/build/pH.0.js
 }
 
 task_js() {

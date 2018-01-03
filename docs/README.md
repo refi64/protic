@@ -490,7 +490,6 @@ identical to *include*, except that it also includes macros:
 
 ***In `index.html`:***
 
-
 ```html
 <+ require="macros.html">
 
@@ -576,6 +575,7 @@ Add the dependency:
 
 ```
 $ npm install --save-dev pH
+# or
 $ yarn add pH
 ```
 
