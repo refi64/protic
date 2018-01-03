@@ -1,6 +1,6 @@
 name: pH
 version: 0.1.0
-description: pH
+description: Zero-effort HTML preprocessing/templating, with conditionals, includes, macros, and more
 author: Ryan Gonzalez <rymg19@gmail.com>
 homepage: https://github.com/kirbyfan64/pH
 dependencies:

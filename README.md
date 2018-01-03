@@ -53,3 +53,10 @@ Check out [the docs](https://refi64.com/pH).
 <!-- Like 'include', but also imports macros -->
 <+ require="myfile.html">
 ```
+
+## Source code structure
+
+- `pH` - The pH core code, written in Dart.
+- `pH-js` - pH, compiled to JavaScript for use in Node or the browser.
+- `pH_transformer` - A Dart Pub transformer for pH
+- `docs` - Website/documentation, powered by [Docute](https://docute.js.org/).

@@ -1,0 +1,88 @@
+<head>
+  <title>pH Demo Page</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.js" defer></script>
+  <script src="build/pH.js" defer></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+
+  <style>
+    .center {
+      text-align: center;
+    }
+
+    #container {
+      display: flex;
+    }
+
+    #input {
+      margin-right: 1em;
+      height: 70%;
+      resize: none;
+    }
+
+    #output {
+      margin-left: 1em;
+      height: 70%;
+      background-color: gainsboro;
+      font-family: monospace;
+      white-space: pre-line;
+      resize: none;
+    }
+
+    @media only screen and (max-width: 500px) {
+      #container {
+        flex-direction: column;
+      }
+
+      #input, #output {
+        margin: 1em;
+      }
+    }
+
+    @media only screen and (min-width: 501px) {
+      #container {
+        flex-direction: row;
+      }
+
+      #input, #output {
+        width: 50%;
+      }
+    }
+
+    #button-wrapper {
+      display: flex;
+      justify-content: center;
+    }
+  </style>
+
+  <script>
+    function compile() {
+      var text = $('#input').val();
+      var results = pH.compile(text);
+      if (results.errors.length == 0) {
+        $('#output').text(results.code);
+      } else {
+        var errors = results.errors.map((e) => e.formattedMessage).join('\n');
+        $('#output').text(errors);
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <h2 class="center">pH demo page</h2>
+
+  <p class="center">
+    <i>Source code is available <a href="https://github.com/kirbyfan64/pH">here</a>.</i>
+  </p>
+
+  <div id="container">
+    <textarea id="input" rows="20"></textarea>
+    <textarea id="output" rows="20" readonly></textarea>
+  </div>
+
+  <div id="button-wrapper">
+    <button onclick="compile()">Compile!</button>
+  </div>
+</body>
