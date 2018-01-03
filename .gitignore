@@ -2,3 +2,4 @@
 .pub/
 pubspec.lock
 pH-js/build/
+site/
