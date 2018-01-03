@@ -37,6 +37,6 @@ task_js_release() {
 }
 
 task_site() {
-  [ -d "site" ] || git clone https://github.com/kirbyfan64/pH.git -b gh-pages
+  [ -d "site" ] || git clone https://github.com/kirbyfan64/pH.git site -b gh-pages
   cp -r docs/index.html docs/README.md pH-js/demo.html pH-js/build site
 }
