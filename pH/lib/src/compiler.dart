@@ -425,7 +425,12 @@ class PhWalker extends TreeVisitor {
           error(el.sourceSpan, 'slot cannot be used outside a macro');
           continue;
         }
-        edit(el.sourceSpan, slot);
+
+        var result = compile(slot, vars: vars, macros: macros,
+                             url: rewriter.file.url, fileProvider: fileProvider);
+        errors.addAll(result.errors);
+
+        edit(el.sourceSpan, result.code);
         invalidated = deleted = true;
         break;
       default:
@@ -471,8 +476,9 @@ class PhWalker extends TreeVisitor {
 
     var macroVars = getAttributesAfter(el.attributes, name);
 
-    var result = compile(macro.contents, vars: vars, macroVars: macroVars,
-                         url: rewriter.file.url, fileProvider: fileProvider,
+    var result = compile(macro.contents, vars: vars, macros: macros,
+                         macroVars: macroVars, url: rewriter.file.url,
+                         fileProvider: fileProvider,
                          slot: macro.slot ? getInnerHtmlSpan(el).text : '');
 
     for (var error in result.errors) {
