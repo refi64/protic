@@ -1,5 +1,5 @@
 @JS()
-library pH.src.js.entrypoint;
+library protic.src.js.entrypoint;
 
 import 'package:js/js.dart';
 import 'package:js/js_util.dart';
@@ -18,10 +18,10 @@ external Exports get exports;
 @JS()
 external set exports(Exports);
 
-@JS('pH')
-external Exports get globalpH;
-@JS('pH')
-external set globalpH(Exports);
+@JS('protic')
+external Exports get globalProtic;
+@JS('protic')
+external set globalProtic(Exports);
 
 @JS('Object.keys')
 external List<String> objectKeys(dynamic obj);
@@ -132,8 +132,8 @@ JsCompileResult jsCompile(String text, [JsCompileArgs args]) {
 
 void main() {
   if (exports == null) {
-    globalpH = new Exports();
-    globalpH.compile = allowInterop(jsCompile);
+    globalProtic = new Exports();
+    globalProtic.compile = allowInterop(jsCompile);
   } else {
     exports.compile = allowInterop(jsCompile);
   }

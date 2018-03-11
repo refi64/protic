@@ -4,7 +4,7 @@ task_default() {
 }
 
 js() {
-  preamble=`awk -F:// '/^node_preamble/ { print $2; }' .packages`
+  preamble=`awk -F:// '/^node_preamble/ { print $2; }' protic/.packages`
   [ -f "$preamble/preamble.js" ] || \
     bask_log_error 'Cannot find node_preamble preamble.js'
 
@@ -16,16 +16,16 @@ js() {
     dart2js_flags=
   fi
 
-  mkdir -p pH-js/build
-  bask_run dart2js --trust-type-annotations $dart2js_flags -o pH-js/build/pH.js \
-            pH/lib/src/js/entrypoint.dart
-  mv pH-js/build/pH.js pH-js/build/pH.0.js
+  mkdir -p protic-js/build
+  bask_run dart2js --trust-type-annotations $dart2js_flags -o protic-js/build/protic.js \
+            protic/lib/src/js/entrypoint.dart
+  mv protic-js/build/protic.js protic-js/build/protic.0.js
   cat \
     <(echo 'if (typeof self === "undefined") {') \
     "$preamble_js" \
     <(echo '}') \
-    pH-js/build/pH.0.js > pH-js/build/pH.js
-  rm pH-js/build/pH.0.js
+    protic-js/build/protic.0.js > protic-js/build/protic.js
+  rm protic-js/build/protic.0.js
 }
 
 task_js() {
@@ -37,6 +37,6 @@ task_js_release() {
 }
 
 task_site() {
-  [ -d "site" ] || git clone https://github.com/kirbyfan64/pH.git site -b gh-pages
-  cp -r docs/index.html docs/README.md pH-js/demo.html pH-js/build site
+  [ -d "site" ] || git clone https://github.com/kirbyfan64/protic.git site -b gh-pages
+  cp -r docs/index.html docs/README.md protic-js/demo.html protic-js/build site
 }

@@ -4,7 +4,7 @@ import 'api.dart';
 import 'platform.dart';
 
 void usage() {
-  print('usage: pH [-h] [-D<name>[=<value>]] [-o|--output <output>] '
+  print('usage: protic [-h] [-D<name>[=<value>]] [-o|--output <output>] '
         '[-s|--source-map <source map output>] <input>');
 }
 

@@ -1,4 +1,4 @@
-import 'package:pH/src/expression.dart';
+import 'package:protic/src/expression.dart';
 import 'package:test/test.dart';
 import 'utils.dart';
 

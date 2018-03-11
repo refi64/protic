@@ -1,0 +1,13 @@
+name: protic_transformer
+version: 0.1.0
+description: A Pub transformer for protic
+author: Ryan Gonzalez <rymg19@gmail.com>
+homepage: https://github.com/kirbyfan64/protic
+dependencies:
+  barback: ^0.15.2
+  protic: ^0.1.0
+dependency_overrides:
+  protic:
+    path: ../protic
+environment:
+  sdk: ">=1.8.0 <2.0.0"

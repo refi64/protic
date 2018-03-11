@@ -1,0 +1,8 @@
+{
+  "name": "protic",
+  "version": "0.1.0",
+  "main": "build/protic.js",
+  "repository": "https://github.com/kirbyfan64/protic",
+  "author": "Ryan Gonzalez",
+  "license": "BSD-2-Clause"
+}

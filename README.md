@@ -1,11 +1,11 @@
-# pH
+# protic
 
 Zero-effort HTML preprocessing/templating, with conditionals, includes, macros, and more.
 
 ## Learning More
 
-Check out [the docs](https://refi64.com/pH), and try out
-[the live demo](https://refi64.com/pH/demo.html).
+Check out [the docs](https://refi64.com/protic), and try out
+[the live demo](https://refi64.com/protic/demo.html).
 
 ## Example
 
@@ -57,7 +57,7 @@ Check out [the docs](https://refi64.com/pH), and try out
 
 ## Source code structure
 
-- `pH` - The pH core code, written in Dart.
-- `pH-js` - pH, compiled to JavaScript for use in Node or the browser.
-- `pH_transformer` - A Dart Pub transformer for pH
+- `protic` - The protic core code, written in Dart.
+- `protic-js` - protic, compiled to JavaScript for use in Node or the browser.
+- `protic_transformer` - A Dart Pub transformer for protic
 - `docs` - Website/documentation, powered by [Docute](https://docute.js.org/).
