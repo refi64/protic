@@ -1,9 +1,9 @@
-# pH
+# protic
 
 Zero-effort HTML preprocessing/templating, with conditionals, includes, macros, and more.
 
-- [Live demo.](https://refi64.com/pH/demo.html)
-- [Source code.](https://github.com/kirbyfan64/pH)
+- [Live demo.](https://refi64.com/protic/demo.html)
+- [Source code.](https://github.com/kirbyfan64/protic)
 
 ```html
 <div +#myid +.mycls></div> <!-- Easy ids and classes -->
@@ -51,12 +51,12 @@ Zero-effort HTML preprocessing/templating, with conditionals, includes, macros, 
 <+ require="myfile.html">
 ```
 
-## What exactly is pH?
+## What exactly is protic?
 
-pH is an HTML preprocessor. But...why? There are already dozens of template languages
+protic is an HTML preprocessor. But...why? There are already dozens of template languages
 available.
 
-Here's the key, though: *pH isn't a template language*.
+Here's the key, though: *protic isn't a template language*.
 
 Most current template languages have been built around the idea of rendering taking
 place on the server. The server will use the template language to create a mostly-static
@@ -102,53 +102,64 @@ worse, if you want to change, say, the description, you have to go through *ever
 single file* and change it. Need to add another wrapper element because your framework
 decided it hates you? *Tough luck!*
 
-pH is more oriented for this use case: a lightweight HTML preprocessor, designed for
+protic is more oriented for this use case: a lightweight HTML preprocessor, designed for
 de-duplicated the stuff that *can't* be moved to the client-side, while being simple
 and easy to use.
 
 ## Getting started
 
-### Installing pH
+### Installing protic
 
-pH is written in Dart, and is available on both the Pub package repository and npm.
+protic is written in Dart, and is available on both the Pub package repository and npm.
 To install from pub, use:
 
 ```
-$ pub global activate pH
+$ pub global activate protic
 ```
 
 To install from npm, use:
 
 ```
-$ npm install -g pH
+$ npm install -g protic
 # or
-$ yarn global add pH
+$ yarn global add protic
 ```
 
 ### Using the CLI
 
-Use the pH command:
+Use the protic command:
 
 ```
-$ pH -o output.html input.html  # process input.html and output to output.html
-$ pH input.html                 # process input.html and output to the screen
-$ pH -                          # process standard input and output to the screen
-$ pH -Dvar=value -              # same as above, but assign 'value' to the variable 'var'
+$ protic -o output.html input.html  # process input.html and output to output.html
+$ protic input.html                 # process input.html and output to the screen
+$ protic -                          # process standard input and output to the screen
+$ protic -Dvar=value -              # same as above, but assign 'value' to the variable 'var'
 ```
 
-## Learning the pH language
+### Using the transformer
 
-This is a whirlwind tour of pH!
+If you're using Pub, you can use the `protic_transformer` package:
+
+```yaml
+dependencies:
+  # ...
+  protic_transformer: any
+transformers:
+  - protic_transformer
+  # ...
+```
+
+## Learning the protic language
 
 ### The magic `+`
 
-Pretty much everything in pH revolves around the `+` tag. This is essentially the pH
+Pretty much everything in protic revolves around the `+` tag. This is essentially the protic
 variant of jQuery's `$` or Underscore/Lodash's `_`: a short, sweet character that
 can be used to access everything said tool offers.
 
 ### Shorthand attributes
 
-pH comes with shorthand for assigning ids and classes to elements:
+protic comes with shorthand for assigning ids and classes to elements:
 
 ```html
 <!-- This is the same as <a id="my-id"> -->
@@ -160,7 +171,7 @@ pH comes with shorthand for assigning ids and classes to elements:
 
 ### Assigning and using variables
 
-Here's a basic pH file:
+Here's a basic protic file:
 
 ```html
 <+ set a="foo" b="bar">
@@ -184,9 +195,9 @@ The contents of a variable can be placed inside your HTML file via:
 <+ value="$a">
 ```
 
-If you run pH on your file, you'll see *foo* come up in place of this tag.
+If you run protic on your file, you'll see *foo* come up in place of this tag.
 
-When debugging your pH files, sometimes it can be useful to see what an expression's
+When debugging your protic files, sometimes it can be useful to see what an expression's
 value is. (The full expression language is explained later.) You can use the *print*
 command for that:
 
@@ -231,14 +242,14 @@ and this will print 123 to the screen.
 
 ### Conditionals
 
-pH also supports conditionals. For instance:
+protic also supports conditionals. For instance:
 
 ```html
 <+ if="$config == dev" include="dev.html">
 ```
 
-You can call pH with something like `pH -Dconfig=dev` when building in development
-mode. This is essentially the pH version of C's `#if`. Here, the *if* serves as a sort
+You can call protic with something like `protic -Dconfig=dev` when building in development
+mode. This is essentially the protic version of C's `#if`. Here, the *if* serves as a sort
 of "prefix"; it comes before your command, and it will cause it to not be run if the
 condition is false.
 
@@ -306,7 +317,7 @@ to omit the closing tags (`</+>`).
 
 ### Expressions
 
-pH comes with an easy-to-use expression language. The syntax will be explained in
+protic comes with an easy-to-use expression language. The syntax will be explained in
 further detail later, but here's the gist of things:
 
 Everything is either a string or null. You can use a string by surrounding its contents
@@ -353,7 +364,7 @@ to:
 $variable
 ```
 
-Since they are all next to each other, pH will concatenate them all, separated by
+Since they are all next to each other, protic will concatenate them all, separated by
 spaces.
 
 If you don't want the spaces, you can use the `+` operator:
@@ -374,7 +385,7 @@ $variable == 123
 If `$variable` is equal to `123`, this will evaluated to the empty string. If the
 condition is false, this will evaluate to a null value.
 
-In pH, much like in Lua, the *only* falsy value is the null value!
+In protic, much like in Lua, the *only* falsy value is the null value!
 
 Of course, inequality can be checked to (using `!=` instead of `==`).
 
@@ -418,7 +429,7 @@ when undefined:
 
 ### Macros
 
-pH also supports macros. Here's the simplest form of a macro:
+protic also supports macros. Here's the simplest form of a macro:
 
 ```html
 <+ macro="my-macro">
@@ -509,28 +520,28 @@ identical to *include*, except that it also includes macros:
 
 ### From Dart
 
-Add pH to your pubspec:
+Add protic to your pubspec:
 
 ```yaml
 dependencies:
-  pH: ^0.1.0
+  protic: ^0.1.0
 ```
 
 Then use it:
 
 ```dart
-import 'package:pH/pH.dart';
+import 'package:protic/protic.dart';
 
 void main() {
-  // The API all stems from pH.compile.
+  // The API all stems from protic.compile.
   CompileResult result;
-  result = pH.compile('text');
-  result = pH.compile('text', vars: {'my-variable': '123'});
-  result = pH.compile('text', url: 'my-file.html');
+  result = protic.compile('text');
+  result = protic.compile('text', vars: {'my-variable': '123'});
+  result = protic.compile('text', url: 'my-file.html');
 
   // CompileResult has three attributes of interest: code, sourceMap, and errors.
   String code = result.code;
-  print('pH outputted the following code: $code');
+  print('protic outputted the following code: $code');
 
   String sourceMap = result.sourceMap;
   print('It also outputted the following source map: $sourceMap');
@@ -552,7 +563,7 @@ When running on the Dart VM, file system access for includes and requires is aut
 Otherwise, you'll need to provide a *FileProvider* to enable includes and requires:
 
 ```dart
-import 'package:pH/pH.dart';
+import 'package:protic/protic.dart';
 
 class MyFileProvider extends FileProvider {
   String read(String path) {
@@ -566,7 +577,7 @@ class MyFileProvider extends FileProvider {
 }
 
 void main() {
-  var result = pH.compile('text', fileProvider: new MyFileProvider());
+  var result = protic.compile('text', fileProvider: new MyFileProvider());
 }
 ```
 
@@ -575,24 +586,24 @@ void main() {
 Add the dependency:
 
 ```
-$ npm install --save-dev pH
+$ npm install --save-dev protic
 # or
-$ yarn add pH
+$ yarn add protic
 ```
 
 Usage:
 
 ```javascript
-var pH = require('pH')
+var protic = require('protic')
 
-// The API all stems from pH.compile.
+// The API all stems from protic.compile.
 var result
-result = pH.compile('text')
-result = pH.compile('text', { vars: { myvariable: 123 } })
-result = pH.compile('text', { url: 'my-file.html' })
+result = protic.compile('text')
+result = protic.compile('text', { vars: { myvariable: 123 } })
+result = protic.compile('text', { url: 'my-file.html' })
 
 // The result has three attributes of interest: code, sourceMap, and errors.
-console.log(`pH outputted the following code string: ${result.code}`)
+console.log(`protic outputted the following code string: ${result.code}`)
 
 console.log(`It also outputted the following source map string: ${result.sourceMap}`)
 
@@ -613,7 +624,7 @@ for (var error of errors) {
         column: 1,
         // Offset into the file
         offset: 2,
-        // The url (same as passed above to pH.compile)
+        // The url (same as passed above to protic.compile)
         url: 'my-file.html',
       },
       // Same format as start
@@ -644,5 +655,5 @@ function fileProvider(path) {
   }
 }
 
-var result = pH.compile('text', { fileProvider })
+var result = protic.compile('text', { fileProvider })
 ```

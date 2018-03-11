@@ -1,9 +1,9 @@
 <head>
-  <title>pH Demo Page</title>
+  <title>Protic Demo Page</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <script src="https://code.jquery.com/jquery-3.2.1.slim.js" defer></script>
-  <script src="build/pH.js" defer></script>
+  <script src="build/protic.js" defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
 
   <style>
@@ -59,7 +59,7 @@
   <script>
     function compile() {
       var text = $('#input').val();
-      var results = pH.compile(text);
+      var results = protic.compile(text);
       if (results.errors.length == 0) {
         $('#output').text(results.code);
       } else {
@@ -71,10 +71,10 @@
 </head>
 
 <body>
-  <h2 class="center">pH demo page</h2>
+  <h2 class="center">protic demo page</h2>
 
   <p class="center">
-    <i><a href="https://refi64.com/pH">Home page.</a></i>
+    <i><a href="https://refi64.com/protic">Home page.</a></i>
   </p>
 
   <div id="container">
