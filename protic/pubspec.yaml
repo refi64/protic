@@ -1,10 +1,10 @@
 name: protic
-version: 0.1.0
+version: 0.1.1
 description: Zero-effort HTML preprocessing/templating, with conditionals, includes, macros, and more
 author: Ryan Gonzalez <rymg19@gmail.com>
 homepage: https://github.com/kirbyfan64/protic
 dependencies:
-  args: ^0.13.0
+  args: ^1.0.0
   collection: ^1.14.3
   html: ^0.13.2
   petitparser: ^1.6.1
