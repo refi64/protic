@@ -204,10 +204,10 @@ class ExprParserDefinition extends ExprGrammarDefinition {
   cmpOp() => super.cmpOp().map((p) => cmpOpMap[p]);
 
   addExpr() => super.addExpr().map((p) => p[1].isEmpty ? p[0] :
-                                          new Concat([p[0]]..addAll(p[1])));
+                                          new Concat(([p[0]]..addAll(p[1])).cast<Expression>()));
 
   concatExpr() => super.concatExpr().map((p) => p.length == 1 ? p[0] :
-                                                new Concat(p, addSpace: true));
+                                                new Concat(p.cast<Expression>(), addSpace: true));
 
   negExpr() => super.negExpr().map((p) => p[0] == null ? p[1] : new Negation(p[1]));
 

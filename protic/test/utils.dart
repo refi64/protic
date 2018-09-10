@@ -130,7 +130,7 @@ class _EvalTest extends Matcher {
                         failure: matchState['failure']);
 }
 
-_EvalTest evalsTo(String expected, {vars, macroVars}) =>
+_EvalTest evalsTo(String expected, {Map<String, String> vars, Map<String, String> macroVars}) =>
   new _EvalTest(expected: expected, vars: vars, macroVars: macroVars);
-_EvalTest evalFails(String error, {vars, macroVars}) =>
+_EvalTest evalFails(String error, {Map<String, String> vars, Map<String, String> macroVars}) =>
   new _EvalTest(failure: error, vars: vars, macroVars: macroVars);

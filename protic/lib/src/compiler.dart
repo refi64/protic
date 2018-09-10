@@ -274,7 +274,7 @@ class PhWalker extends TreeVisitor {
         var elseNodes = <Node>[];
 
         if (orelseIndexes.isNotEmpty) {
-          var childrenCopy = new List.from(el.nodes);
+          var childrenCopy = new List<Node>.from(el.nodes);
           // Shorten the children to just until the first orelse.
           el.nodes.removeRange(orelseIndexes[0], el.nodes.length);
 
@@ -291,7 +291,7 @@ class PhWalker extends TreeVisitor {
             var elseEndSpan =
               (lastChild is Element ? lastChild.endSourceSpan : null) ??
               lastChild.sourceSpan;
-            childrenCopy[orelseIndex].endSourceSpan = elseEndSpan.file.span(
+            (childrenCopy[orelseIndex] as Element).endSourceSpan = elseEndSpan.file.span(
               elseEndSpan.end.offset, elseEndSpan.end.offset);
 
             elseNodes.add(childrenCopy[orelseIndex]);
@@ -384,7 +384,7 @@ class PhWalker extends TreeVisitor {
         var htmlBuffer = new StringBuffer();
 
         for (var value in values) {
-          var loopVars = new Map.from(vars);
+          var loopVars = new Map<String, String>.from(vars);
           loopVars[target] = value;
           var result = compile(contents, vars: loopVars, macroVars: macroVars,
                                url: rewriter.file.url, fileProvider: fileProvider);
