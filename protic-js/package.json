@@ -1,6 +1,6 @@
 {
   "name": "protic",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "main": "build/protic.js",
   "repository": "https://github.com/refi64/protic",
   "author": "Ryan Gonzalez",
