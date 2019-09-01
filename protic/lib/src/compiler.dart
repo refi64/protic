@@ -367,7 +367,7 @@ class PhWalker extends TreeVisitor {
         Iterable<String> values;
 
         if (exprKind == 'upto') {
-          var exprNum = int.parse(exprString, onError: (_) => null);
+          var exprNum = int.tryParse(exprString);
           if (exprNum == null) {
             error(exprSpan, 'expression is not a valid integer');
             return;

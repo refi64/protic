@@ -14,7 +14,7 @@ void run(List<String> argv) {
     ..addOption('output', abbr: 'o', help: 'the output file',
                 defaultsTo: '-')
     ..addOption('source-map', abbr: 's', help: 'output a source map to the given path')
-    ..addOption('define', abbr: 'D', help: 'define a variable', allowMultiple: true);
+    ..addMultiOption('define', abbr: 'D', help: 'define a variable');
 
   ArgResults args;
 
