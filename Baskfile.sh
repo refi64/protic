@@ -17,7 +17,7 @@ js() {
   fi
 
   mkdir -p protic-js/build
-  bask_run dart2js --trust-type-annotations $dart2js_flags -o protic-js/build/protic.js \
+  bask_run dart2js --omit-implicit-checks $dart2js_flags -o protic-js/build/protic.js \
             protic/lib/src/js/entrypoint.dart
   mv protic-js/build/protic.js protic-js/build/protic.0.js
   cat \
