@@ -9,12 +9,15 @@ import 'api.dart' hide compile;
 import 'expression.dart';
 import 'html_parsing.dart' as html;
 
-class Maybe<T> {}
-class Just<T> extends Maybe<T> {
+// We need to be able to distinguish between a null value and a failed evaluation.
+class Result<T> {}
+
+class Success<T> extends Result<T> {
   T value;
-  Just(this.value);
+  Success(this.value);
 }
-class Nothing<T> extends Maybe<T> {}
+
+class Failure<T> extends Result<T> {}
 
 class MovedSpan {
   SourceSpan original, target;
@@ -28,13 +31,13 @@ class Macro {
   Macro({this.contents, this.scopes, this.slot});
 }
 
-class PhWalker extends TreeVisitor {
+class ProticWalker extends TreeVisitor {
   TextEditTransaction rewriter;
   Map<String, String> vars, macroVars;
   Map<String, Macro> macros;
   FileProvider fileProvider;
   String slot;
-  PhWalker(this.rewriter, {this.vars, this.macroVars, this.macros, this.fileProvider,
+  ProticWalker(this.rewriter, {this.vars, this.macroVars, this.macros, this.fileProvider,
            this.slot}) {
     this.vars ??= <String, String>{};
     this.macroVars ??= <String, String>{};
@@ -131,7 +134,7 @@ class PhWalker extends TreeVisitor {
         var valueSpan = el.attributeValueSpans[attr];
         var result = runExpression(valueSpan, el.attributes[attr]);
 
-        if (result is Just<String>) {
+        if (result is Success<String>) {
           edit(span, '$actualAttr="${result.value}"');
         }
       }
@@ -143,7 +146,7 @@ class PhWalker extends TreeVisitor {
     }
   }
 
-  Maybe<String> runExpression(SourceSpan at, String expr) {
+  Result<String> runExpression(SourceSpan at, String expr) {
     var currentScope = <String, String>{};
     for (var scope in scopes) {
       currentScope.addAll(scope);
@@ -154,14 +157,14 @@ class PhWalker extends TreeVisitor {
     var result = parseExpression(expr);
     if (result == null) {
       error(at, 'syntax error in expression');
-      return new Nothing();
+      return new Failure();
     }
 
     try {
-      return new Just<String>(result.eval(ctx));
+      return new Success<String>(result.eval(ctx));
     } on EvalError catch (ex) {
       error(at, 'error evaluating expression: $ex');
-      return new Nothing();
+      return new Failure();
     }
   }
 
@@ -197,7 +200,7 @@ class PhWalker extends TreeVisitor {
             scopes.last[name] = '';
           } else {
             var result = runExpression(el.attributeValueSpans[name], assignments[name]);
-            if (result is Just<String>) {
+            if (result is Success<String>) {
               scopes.last[name] = result.value;
             }
           }
@@ -205,25 +208,25 @@ class PhWalker extends TreeVisitor {
         break outer;
       case 'value':
         var result = runExpression(valueSpan, value);
-        if (result is Just<String>) {
+        if (result is Success<String>) {
           edit(el.sourceSpan, result.value);
         }
         invalidated = deleted = true;
         break;
       case 'print':
         var result = runExpression(valueSpan, value);
-        if (result is Just<String>) {
+        if (result is Success<String>) {
           print(attrSpan.message('print: ${result.value}'));
         }
         break;
       case 'include':
       case 'require':
-        var maybePath = runExpression(valueSpan, value);
-        if (maybePath is Nothing) {
+        var pathResult = runExpression(valueSpan, value);
+        if (pathResult is Failure) {
           continue;
         }
 
-        var path = (maybePath as Just<String>).value;
+        var path = (pathResult as Success<String>).value;
         if (path == null) {
           error(valueSpan, 'expression resulted in a null value');
           continue;
@@ -299,7 +302,7 @@ class PhWalker extends TreeVisitor {
         }
 
         var result = runExpression(valueSpan, value);
-        if (result is Just<String>) {
+        if (result is Success<String>) {
           lastIfStatus = isTruthy(result.value);
           if (lastIfStatus) {
             for (var node in elseNodes) {
@@ -360,10 +363,10 @@ class PhWalker extends TreeVisitor {
         }
 
         var exprResult = runExpression(exprSpan, expr);
-        if (exprResult is Nothing) {
+        if (exprResult is Failure) {
           return;
         }
-        var exprString = (exprResult as Just<String>).value;
+        var exprString = (exprResult as Success<String>).value;
         Iterable<String> values;
 
         if (exprKind == 'upto') {
@@ -510,7 +513,7 @@ CompileResult compile(String text, {Map<String, String> vars,
   var rewriter = new TextEditTransaction(text, source);
 
   var dom = html.parse(text, url: url, fileProvider: fileProvider);
-  var walker = new PhWalker(rewriter, vars: vars, macroVars: macroVars, macros: macros,
+  var walker = new ProticWalker(rewriter, vars: vars, macroVars: macroVars, macros: macros,
                             fileProvider: fileProvider, slot: slot);
   walker.visit(dom);
   var printer = rewriter.commit();
